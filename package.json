@@ -1,0 +1,14 @@
+{
+  "name": "northline-commerce",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "packageManager": "npm@10.9.3",
+  "engines": { "node": ">=18.18.0" },
+  "scripts": {
+    "dev": "npm --workspace storefront run dev",
+    "build": "npm --workspace storefront run build",
+    "start": "npm --workspace storefront run start",
+    "lint": "npm --workspace storefront run lint",
+    "typecheck": "npm --workspace storefront run typecheck"
+  }
+}
