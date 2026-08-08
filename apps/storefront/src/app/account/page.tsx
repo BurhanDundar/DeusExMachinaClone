@@ -30,10 +30,7 @@ export default function AccountPage() {
       <main className="min-h-[620px] bg-white">
         <div className="grid lg:grid-cols-[25%_75%]">
           <aside className="px-5 py-8 sm:px-8 lg:pt-28">
-            <nav
-              className="flex flex-wrap gap-x-5 gap-y-3 lg:flex-col lg:items-start lg:gap-0"
-              aria-label="Account navigation"
-            >
+            <nav className="flex flex-col items-start gap-0" aria-label="Account navigation">
               {navigation.map((item) => (
                 <button
                   key={item.id}

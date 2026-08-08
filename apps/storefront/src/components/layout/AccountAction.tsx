@@ -8,10 +8,11 @@ export function AccountAction() {
   return (
     <Link
       href={user ? "/account" : "/account/login"}
-      className="focus-ring hidden items-center gap-1 lg:flex"
+      className="focus-ring flex items-center gap-1 p-2"
+      aria-label="Account"
     >
       <UserRound size={20} />
-      Account
+      <span className="hidden lg:inline">Account</span>
     </Link>
   );
 }
