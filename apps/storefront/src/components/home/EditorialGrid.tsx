@@ -1,3 +1,39 @@
-import Image from "next/image";import Link from "next/link";import {ArrowRight} from "lucide-react";
-const cards=[{title:"Field Notes",pos:"object-left",img:"/campaign/campaign-wide.jpg"},{title:"Road Tests",pos:"object-center",img:"/campaign/campaign-portrait.jpg"},{title:"Workshop",pos:"object-right",img:"/campaign/campaign-wide.jpg"}];
-export function EditorialGrid(){return <section className="shell section-space"><div className="mb-10 flex justify-between"><h2 className="display text-3xl md:text-4xl">Stories in motion</h2><Link href="/journal" className="focus-ring flex items-center gap-2 font-bold"><ArrowRight/> Read all</Link></div><div className="grid gap-2 md:grid-cols-3">{cards.map((c,i)=><Link href="/journal" key={c.title} className="focus-ring group relative aspect-[4/5] overflow-hidden"><Image src={c.img} alt="" fill className={`object-cover ${c.pos} transition duration-700 group-hover:scale-[1.02]`} sizes="(max-width:767px) 100vw,33vw"/><div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"/><h3 className="display absolute bottom-7 left-6 text-3xl text-white">{c.title}</h3></Link>)}</div></section>}
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+const cards = [
+  { title: "Field Notes", pos: "object-left", img: "/campaign/campaign-wide.jpg" },
+  { title: "Road Tests", pos: "object-center", img: "/campaign/campaign-portrait.jpg" },
+  { title: "Workshop", pos: "object-right", img: "/campaign/campaign-wide.jpg" },
+];
+export function EditorialGrid() {
+  return (
+    <section className="shell section-space">
+      <div className="mb-10 flex justify-between">
+        <h2 className="display text-3xl md:text-4xl">Stories in motion</h2>
+        <Link href="/journal" className="focus-ring flex items-center gap-2 font-bold">
+          <ArrowRight /> Read all
+        </Link>
+      </div>
+      <div className="grid gap-2 md:grid-cols-3">
+        {cards.map((c, i) => (
+          <Link
+            href="/journal"
+            key={c.title}
+            className="focus-ring group relative aspect-[4/5] overflow-hidden"
+          >
+            <Image
+              src={c.img}
+              alt=""
+              fill
+              className={`object-cover ${c.pos} transition duration-700 group-hover:scale-[1.02]`}
+              sizes="(max-width:767px) 100vw,33vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+            <h3 className="display absolute bottom-7 left-6 text-3xl text-white">{c.title}</h3>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}

@@ -5,7 +5,13 @@ import { useAuth } from "@/auth/AuthProvider";
 
 export function AccountAction() {
   const { user } = useAuth();
-  return <Link href={user ? "/account" : "/account/login"} className="focus-ring hidden items-center gap-1 lg:flex">
-    <UserRound size={20}/>Account
-  </Link>;
+  return (
+    <Link
+      href={user ? "/account" : "/account/login"}
+      className="focus-ring hidden items-center gap-1 lg:flex"
+    >
+      <UserRound size={20} />
+      Account
+    </Link>
+  );
 }

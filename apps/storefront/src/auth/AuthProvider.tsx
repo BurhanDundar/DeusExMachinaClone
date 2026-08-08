@@ -14,7 +14,12 @@ export type AccountUser = {
   updatedAt: string;
 };
 
-type AuthResponse = { accessToken: string; tokenType: "Bearer"; expiresIn: number; user: AccountUser };
+type AuthResponse = {
+  accessToken: string;
+  tokenType: "Bearer";
+  expiresIn: number;
+  user: AccountUser;
+};
 type RegisterInput = { email: string; password: string; firstName: string; lastName: string };
 type AuthContextValue = {
   user: AccountUser | null;
@@ -29,8 +34,11 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 let bootstrapSession: Promise<AuthResponse> | null = null;
 
 function refreshSession() {
-  bootstrapSession ??= apiRequest<AuthResponse>("/api/auth/refresh", { method: "POST" })
-    .finally(() => { bootstrapSession = null; });
+  bootstrapSession ??= apiRequest<AuthResponse>("/api/auth/refresh", { method: "POST" }).finally(
+    () => {
+      bootstrapSession = null;
+    }
+  );
   return bootstrapSession;
 }
 
@@ -47,46 +55,78 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let active = true;
     refreshSession()
-      .then(session => { if (active) acceptSession(session); })
-      .catch(error => { if (active && !(error instanceof ApiError && error.status === 401)) console.error(error); })
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
+      .then((session) => {
+        if (active) acceptSession(session);
+      })
+      .catch((error) => {
+        if (active && !(error instanceof ApiError && error.status === 401)) console.error(error);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [acceptSession]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    acceptSession(await apiRequest<AuthResponse>("/api/auth/login", {
-      method: "POST", body: JSON.stringify({ email, password }),
-    }));
-  }, [acceptSession]);
+  const login = useCallback(
+    async (email: string, password: string) => {
+      acceptSession(
+        await apiRequest<AuthResponse>("/api/auth/login", {
+          method: "POST",
+          body: JSON.stringify({ email, password }),
+        })
+      );
+    },
+    [acceptSession]
+  );
 
-  const register = useCallback(async (input: RegisterInput) => {
-    acceptSession(await apiRequest<AuthResponse>("/api/auth/register", {
-      method: "POST", body: JSON.stringify(input),
-    }));
-  }, [acceptSession]);
+  const register = useCallback(
+    async (input: RegisterInput) => {
+      acceptSession(
+        await apiRequest<AuthResponse>("/api/auth/register", {
+          method: "POST",
+          body: JSON.stringify(input),
+        })
+      );
+    },
+    [acceptSession]
+  );
 
   const logout = useCallback(async () => {
-    try { await apiRequest<void>("/api/auth/logout", { method: "POST" }); }
-    finally { setUser(null); setAccessToken(null); }
+    try {
+      await apiRequest<void>("/api/auth/logout", { method: "POST" });
+    } finally {
+      setUser(null);
+      setAccessToken(null);
+    }
   }, []);
 
-  const authenticatedFetch = useCallback(async <T,>(path: string, init: RequestInit = {}) => {
-    let token = accessToken;
-    const request = () => apiRequest<T>(path, {
-      ...init, headers: { ...init.headers, ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-    });
-    try { return await request(); }
-    catch (error) {
-      if (!(error instanceof ApiError) || error.status !== 401) throw error;
-      const session = await refreshSession();
-      acceptSession(session);
-      token = session.accessToken;
-      return request();
-    }
-  }, [accessToken, acceptSession]);
+  const authenticatedFetch = useCallback(
+    async <T,>(path: string, init: RequestInit = {}) => {
+      let token = accessToken;
+      const request = () =>
+        apiRequest<T>(path, {
+          ...init,
+          headers: { ...init.headers, ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        });
+      try {
+        return await request();
+      } catch (error) {
+        if (!(error instanceof ApiError) || error.status !== 401) throw error;
+        const session = await refreshSession();
+        acceptSession(session);
+        token = session.accessToken;
+        return request();
+      }
+    },
+    [accessToken, acceptSession]
+  );
 
-  const value = useMemo(() => ({ user, loading, login, register, logout, authenticatedFetch }),
-    [user, loading, login, register, logout, authenticatedFetch]);
+  const value = useMemo(
+    () => ({ user, loading, login, register, logout, authenticatedFetch }),
+    [user, loading, login, register, logout, authenticatedFetch]
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

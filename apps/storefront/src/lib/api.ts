@@ -7,7 +7,10 @@ export type ApiErrorBody = {
 };
 
 export class ApiError extends Error {
-  constructor(public status: number, public body: ApiErrorBody) {
+  constructor(
+    public status: number,
+    public body: ApiErrorBody
+  ) {
     super(body.message);
   }
 }

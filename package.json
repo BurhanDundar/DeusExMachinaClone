@@ -1,14 +1,26 @@
 {
   "name": "northline-commerce",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "packageManager": "npm@10.9.3",
-  "engines": { "node": ">=18.18.0" },
+  "engines": {
+    "node": ">=18.18.0"
+  },
   "scripts": {
     "dev": "npm --workspace storefront run dev",
     "build": "npm --workspace storefront run build",
     "start": "npm --workspace storefront run start",
     "lint": "npm --workspace storefront run lint",
-    "typecheck": "npm --workspace storefront run typecheck"
+    "typecheck": "npm --workspace storefront run typecheck",
+    "format": "prettier --write \"apps/storefront/**/*.{ts,tsx,js,mjs,json,css}\" \"backend/src/**/*.{java,yml,yaml}\" \"backend/pom.xml\" \"*.{json,yml,yaml,md}\" \"docs/**/*.md\"",
+    "format:check": "prettier --check \"apps/storefront/**/*.{ts,tsx,js,mjs,json,css}\" \"backend/src/**/*.{java,yml,yaml}\" \"backend/pom.xml\" \"*.{json,yml,yaml,md}\" \"docs/**/*.md\""
+  },
+  "devDependencies": {
+    "@prettier/plugin-xml": "^3.4.2",
+    "prettier": "^3.5.3",
+    "prettier-plugin-java": "^2.6.7"
   }
 }
