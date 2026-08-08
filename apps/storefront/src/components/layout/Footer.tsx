@@ -1,23 +1,23 @@
 import Link from "next/link";
 import { Globe2 } from "lucide-react";
 import { Newsletter } from "@/components/home/Newsletter";
-const groups = {
-  Support: ["Contact", "Shipping", "Returns", "Size guide"],
-  About: ["Our story", "Stores", "Journal"],
-  Social: ["Instagram", "YouTube", "Facebook"],
-};
+const groups = [
+  { title: "Support", links: ["Contact", "Shipping", "Returns", "Size guide"] },
+  { title: "About Us", links: ["About the Brand"] },
+  { title: "Social", links: ["Instagram", "YouTube", "Facebook"] },
+];
 export function Footer() {
   return (
     <footer>
       <Newsletter />
       <div className="grid gap-10 bg-[#e6e5e1] px-6 pb-10 md:grid-cols-4 md:px-12 md:pb-14">
-        {Object.entries(groups).map(([h, links]) => (
-          <div key={h}>
-            <h3 className="mb-4 text-lg font-bold">{h}</h3>
+        {groups.map((group) => (
+          <div key={group.title}>
+            <h3 className="mb-4 text-lg font-bold">{group.title}</h3>
             <ul className="space-y-2">
-              {links.map((x) => (
+              {group.links.map((x) => (
                 <li key={x}>
-                  <Link href="#" className="focus-ring">
+                  <Link href={x === "About the Brand" ? "/about" : "#"} className="focus-ring">
                     {x}
                   </Link>
                 </li>

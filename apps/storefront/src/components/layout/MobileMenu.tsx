@@ -6,7 +6,7 @@ import { ArrowRight, UserRound, X } from "lucide-react";
 
 const categories = ["Men", "Women", "Accessories", "Culture", "Sale"];
 const support = ["Contact Us", "Size Guide", "Shipping", "Returns"];
-const about = ["About the Brand", "Stores"];
+const about = ["About the Brand"];
 
 export function MobileMenu({ open, close }: { open: boolean; close: () => void }) {
   return (
@@ -66,7 +66,11 @@ function MenuGroup({ title, links, close }: { title: string; links: string[]; cl
       <ul className="space-y-1">
         {links.map((link) => (
           <li key={link}>
-            <Link onClick={close} href="#" className="focus-ring block py-0.5 text-sm">
+            <Link
+              onClick={close}
+              href={link === "About the Brand" ? "/about" : "#"}
+              className="focus-ring block py-0.5 text-sm"
+            >
               {link}
             </Link>
           </li>
