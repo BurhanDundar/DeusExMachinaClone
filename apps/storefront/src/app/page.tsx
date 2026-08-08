@@ -12,21 +12,21 @@ export default function Home() {
         kicker="Autumn / Winter 26"
         title="Built for the long way round."
       />
-      <ProductSection title="New Arrivals" products={products.slice(0, 4)} />
+      <ProductSection title="New Arrivals" products={products.slice(0, 8)} />
       <Campaign
         image="/campaign/campaign-wide.jpg"
         kicker="Motion studies / 01"
         title="City limits are only suggestions."
         portrait
       />
-      <ProductSection title="Workshop Classics" products={products.slice(8, 12)} />
+      <ProductSection title="Workshop Classics" products={products.slice(8, 16)} />
       <section className="shell">
         <div className="grid gap-2 md:grid-cols-2">
           <CampaignTile image="/campaign/campaign-portrait.jpg" title="Mens" />
           <CampaignTile image="/campaign/campaign-wide.jpg" title="Womens" />
         </div>
       </section>
-      <ProductSection title="Motion Studies" products={products.slice(16, 20)} />
+      <ProductSection title="Motion Studies" products={products.slice(16, 24)} />
       <EditorialGrid />
       <Footer />
     </main>

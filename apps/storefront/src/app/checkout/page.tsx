@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 import { Check, CircleHelp, LockKeyhole, Search } from "lucide-react";
 import { useUIStore } from "@/store/ui-store";
+import { CURRENCY_LABEL, formatPrice } from "@/lib/currency";
 
 const inputClass =
   "mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-3 text-sm outline-none placeholder:text-black/55 focus:border-black";
@@ -351,7 +352,7 @@ function OrderSummary({
                   {item.product.color} / {item.size}
                 </p>
               </div>
-              <p>€{(item.product.price * item.quantity).toFixed(2)}</p>
+              <p>{formatPrice(item.product.price * item.quantity)}</p>
             </div>
           ))}
         </div>
@@ -370,7 +371,7 @@ function OrderSummary({
         <div className="mt-8 space-y-2 text-sm">
           <div className="flex justify-between">
             <span>Subtotal · {count} items</span>
-            <span>€{subtotal.toFixed(2)}</span>
+            <span>{formatPrice(subtotal)}</span>
           </div>
           <div className="flex justify-between">
             <span>Shipping</span>
@@ -379,8 +380,8 @@ function OrderSummary({
           <div className="flex items-baseline justify-between pt-2 text-lg font-bold">
             <span>Total</span>
             <span>
-              <small className="mr-1 text-xs font-normal text-black/55">EUR</small>€
-              {subtotal.toFixed(2)}
+              <small className="mr-1 text-xs font-normal text-black/55">{CURRENCY_LABEL}</small>
+              {formatPrice(subtotal)}
             </span>
           </div>
         </div>

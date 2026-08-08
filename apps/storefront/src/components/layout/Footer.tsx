@@ -28,7 +28,7 @@ export function Footer() {
         <div>
           <h3 className="mb-4 text-lg font-bold">Region</h3>
           <button className="focus-ring flex items-center gap-2 border border-black px-4 py-3">
-            <Globe2 /> EUR / EN
+            <Globe2 /> TL / TR
           </button>
         </div>
       </div>

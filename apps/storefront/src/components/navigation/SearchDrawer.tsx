@@ -5,6 +5,7 @@ import { Search, X } from "lucide-react";
 import { useState } from "react";
 import { products } from "@/data/products";
 import { useUIStore } from "@/store/ui-store";
+import { formatPrice } from "@/lib/currency";
 export function SearchDrawer() {
   const s = useUIStore();
   const [q, setQ] = useState("");
@@ -61,7 +62,7 @@ export function SearchDrawer() {
                   className="flex justify-between border-b border-black/15 py-4 font-bold"
                 >
                   <span>{p.name}</span>
-                  <span>€{p.price}</span>
+                  <span>{formatPrice(p.price)}</span>
                 </Link>
               ))}
               {q.length > 1 && !found.length && <p>No products found.</p>}

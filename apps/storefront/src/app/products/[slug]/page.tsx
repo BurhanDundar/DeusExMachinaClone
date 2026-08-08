@@ -4,6 +4,7 @@ import { products, productBySlug } from "@/data/products";
 import { ProductSection } from "@/components/commerce/ProductSection";
 import { ProductPurchase } from "./purchase";
 import { Footer } from "@/components/layout/Footer";
+import { formatPrice } from "@/lib/currency";
 export function generateStaticParams() {
   return products.map((p) => ({ slug: p.slug }));
 }
@@ -30,7 +31,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <div className="md:sticky md:top-32 md:h-fit md:px-14">
           <p className="text-xs font-bold">{p.badge}</p>
           <h1 className="display mt-4 text-4xl md:text-5xl">{p.name}</h1>
-          <p className="mt-3 text-lg">€{p.price.toFixed(2)} EUR</p>
+          <p className="mt-3 text-lg">{formatPrice(p.price)}</p>
           <p className="mt-8 max-w-md leading-6 text-black/65">{p.description}</p>
           <ProductPurchase product={p} />
           <details className="mt-10 border-t border-black py-5">

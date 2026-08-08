@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Minus, Plus, X } from "lucide-react";
 import { useUIStore } from "@/store/ui-store";
+import { formatPrice } from "@/lib/currency";
 export function CartDrawer() {
   const s = useUIStore();
   const router = useRouter();
@@ -57,7 +58,7 @@ export function CartDrawer() {
                       <p className="mt-1 text-sm">
                         {i.product.color} / {i.size}
                       </p>
-                      <p className="mt-2">€{(i.product.price * i.quantity).toFixed(2)}</p>
+                      <p className="mt-2">{formatPrice(i.product.price * i.quantity)}</p>
                       <div className="mt-3 flex items-center gap-3">
                         <button onClick={() => s.quantity(i.product.id, i.size, i.quantity - 1)}>
                           <Minus size={16} />
@@ -81,7 +82,7 @@ export function CartDrawer() {
             <div className="border-t border-black pt-5">
               <div className="mb-5 flex justify-between text-lg font-bold">
                 <span>Subtotal</span>
-                <span>€{subtotal.toFixed(2)} EUR</span>
+                <span>{formatPrice(subtotal)}</span>
               </div>
               <button
                 onClick={checkout}
