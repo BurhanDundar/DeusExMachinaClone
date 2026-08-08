@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {Menu,Search,ShoppingBag,X} from "lucide-react";
 import {Brand} from "@/components/ui/Brand";
 import {useUIStore} from "@/store/ui-store";
@@ -7,7 +8,9 @@ import {MobileMenu} from "./MobileMenu";
 import {AccountAction} from "./AccountAction";
 
 const nav=["Men","Women","Accessories","Culture","Sale"];
-export function Header(){const s=useUIStore();const count=s.items.reduce((n,i)=>n+i.quantity,0);return <>
+export function Header(){const s=useUIStore();const pathname=usePathname();const count=s.items.reduce((n,i)=>n+i.quantity,0);
+ if(pathname==="/checkout") return <header className="sticky top-0 z-40 h-[80px] border-b border-black/10 bg-paper"><div className="relative mx-auto flex h-full max-w-7xl items-center justify-center px-5"><Link href="/" className="focus-ring"><Brand/></Link><button onClick={s.openCart} className="focus-ring absolute right-4 p-2" aria-label={`Bag with ${count} items`}><ShoppingBag size={22}/><span className="sr-only">Bag ({count})</span></button></div></header>;
+ return <>
  <header className="sticky top-0 z-40 h-[88px] border-b border-black/5 bg-paper/95 backdrop-blur-md md:h-[96px]">
   <div className="shell relative flex h-full items-center justify-between">
    <nav className="hidden gap-7 lg:flex" aria-label="Primary">{nav.map(n=><Link className="focus-ring font-semibold" href={`/collections/${n.toLowerCase()}`} key={n}>{n} <span aria-hidden>＋</span></Link>)}</nav>
