@@ -1,3 +1,51 @@
-import Image from "next/image";import {Campaign} from "@/components/home/Campaign";import {ProductSection} from "@/components/commerce/ProductSection";import {EditorialGrid} from "@/components/home/EditorialGrid";import {Footer} from "@/components/layout/Footer";import {products} from "@/data/products";
-export default function Home(){return <main><Campaign image="/campaign/campaign-portrait.png" kicker="Autumn / Winter 26" title="Built for the long way round."/><ProductSection title="New Arrivals" products={products.slice(0,4)}/><Campaign image="/campaign/campaign-wide.png" kicker="Motion studies / 01" title="City limits are only suggestions." portrait/><ProductSection title="Workshop Classics" products={products.slice(8,12)}/><section className="shell"><div className="grid gap-2 md:grid-cols-2"><CampaignTile image="/campaign/campaign-portrait.png" title="Mens"/><CampaignTile image="/campaign/campaign-wide.png" title="Womens"/></div></section><ProductSection title="Motion Studies" products={products.slice(16,20)}/><EditorialGrid/><Footer/></main>}
-function CampaignTile({image,title}:{image:string;title:string}){return <a href={`/collections/${title.toLowerCase()}`} className="group relative block aspect-[4/5] overflow-hidden bg-black"><Image src={image} alt="" fill className="object-cover transition duration-700 group-hover:scale-[1.02]" sizes="(max-width:767px) 100vw,50vw"/><span className="display absolute bottom-6 left-6 text-4xl text-white">{title} →</span></a>}
+import Image from "next/image";
+import { Campaign } from "@/components/home/Campaign";
+import { ProductSection } from "@/components/commerce/ProductSection";
+import { EditorialGrid } from "@/components/home/EditorialGrid";
+import { Footer } from "@/components/layout/Footer";
+import { products } from "@/data/products";
+export default function Home() {
+  return (
+    <main>
+      <Campaign
+        image="/campaign/campaign-portrait.jpg"
+        kicker="Autumn / Winter 26"
+        title="Built for the long way round."
+      />
+      <ProductSection title="New Arrivals" products={products.slice(0, 8)} />
+      <Campaign
+        image="/campaign/campaign-wide.jpg"
+        kicker="Motion studies / 01"
+        title="City limits are only suggestions."
+        portrait
+      />
+      <ProductSection title="Workshop Classics" products={products.slice(8, 16)} />
+      <section className="shell">
+        <div className="grid gap-2 md:grid-cols-2">
+          <CampaignTile image="/campaign/campaign-portrait.jpg" title="Mens" />
+          <CampaignTile image="/campaign/campaign-wide.jpg" title="Womens" />
+        </div>
+      </section>
+      <ProductSection title="Motion Studies" products={products.slice(16, 24)} />
+      <EditorialGrid />
+      <Footer />
+    </main>
+  );
+}
+function CampaignTile({ image, title }: { image: string; title: string }) {
+  return (
+    <a
+      href={`/collections/${title.toLowerCase()}`}
+      className="group relative block aspect-[4/5] overflow-hidden bg-black"
+    >
+      <Image
+        src={image}
+        alt=""
+        fill
+        className="object-cover transition duration-700 group-hover:scale-[1.02]"
+        sizes="(max-width:767px) 100vw,50vw"
+      />
+      <span className="display absolute bottom-6 left-6 text-4xl text-white">{title} →</span>
+    </a>
+  );
+}
