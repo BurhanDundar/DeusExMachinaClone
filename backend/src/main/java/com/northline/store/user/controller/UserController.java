@@ -1,6 +1,7 @@
 package com.northline.store.user.controller;
 
 import com.northline.store.common.security.UserPrincipal;
+import com.northline.store.user.dto.ChangePasswordRequest;
 import com.northline.store.user.dto.UpdateUserRequest;
 import com.northline.store.user.dto.UserResponse;
 import com.northline.store.user.service.UserService;
@@ -29,5 +30,14 @@ public class UserController {
     @Valid @RequestBody UpdateUserRequest request
   ) {
     return userService.update(principal.id(), request);
+  }
+
+  @PutMapping("/me/password")
+  @ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
+  void changePassword(
+    @AuthenticationPrincipal UserPrincipal principal,
+    @Valid @RequestBody ChangePasswordRequest request
+  ) {
+    userService.changePassword(principal.id(), request);
   }
 }

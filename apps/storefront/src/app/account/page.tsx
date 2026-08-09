@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Plus, X } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { useAuth } from "@/auth/AuthProvider";
+import { ApiError } from "@/lib/api";
 
 type AccountSection = "overview" | "details" | "addresses" | "orders";
 
@@ -17,7 +18,7 @@ const navigation: { id: AccountSection; label: string }[] = [
 
 export default function AccountPage() {
   const router = useRouter();
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout, authenticatedFetch } = useAuth();
   const [section, setSection] = useState<AccountSection>("overview");
 
   useEffect(() => {
@@ -58,7 +59,14 @@ export default function AccountPage() {
             <div className="max-w-[928px]">
               {section === "overview" && <Overview firstName={user.firstName} />}
               {section === "details" && (
-                <Details firstName={user.firstName} lastName={user.lastName} email={user.email} />
+                <Details
+                  firstName={user.firstName}
+                  lastName={user.lastName}
+                  email={user.email}
+                  authenticatedFetch={authenticatedFetch}
+                  logout={logout}
+                  onSignedOut={() => router.replace("/account/login")}
+                />
               )}
               {section === "addresses" && <Addresses />}
               {section === "orders" && <Orders />}
@@ -96,11 +104,40 @@ function Details({
   firstName,
   lastName,
   email,
+  authenticatedFetch,
+  logout,
+  onSignedOut,
 }: {
   firstName: string;
   lastName: string;
   email: string;
+  authenticatedFetch: <T>(path: string, init?: RequestInit) => Promise<T>;
+  logout: () => Promise<void>;
+  onSignedOut: () => void;
 }) {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [notice, setNotice] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function changePassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSaving(true);
+    setNotice("");
+    try {
+      await authenticatedFetch<void>("/api/users/me/password", {
+        method: "PUT",
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      await logout();
+      onSignedOut();
+    } catch (error) {
+      setNotice(error instanceof ApiError ? error.message : "Şifre değiştirilemedi.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <>
       <h1 className="display text-4xl">Account</h1>
@@ -110,9 +147,47 @@ function Details({
         </p>
         <p>{email}</p>
       </div>
-      <button className="focus-ring mt-5 border-b border-dotted border-black font-semibold">
-        Reset Password
-      </button>
+      <form
+        onSubmit={changePassword}
+        className="mt-8 max-w-md space-y-4 border-t border-black/15 pt-7"
+      >
+        <h2 className="text-xl font-bold">Şifre değiştir</h2>
+        <label className="block font-semibold">
+          Mevcut şifre
+          <input
+            required
+            type="password"
+            autoComplete="current-password"
+            value={currentPassword}
+            onChange={(event) => setCurrentPassword(event.target.value)}
+            className="mt-2 w-full border border-black/25 bg-white px-3 py-2 outline-none focus:border-black"
+          />
+        </label>
+        <label className="block font-semibold">
+          Yeni şifre
+          <input
+            required
+            type="password"
+            minLength={8}
+            autoComplete="new-password"
+            value={newPassword}
+            onChange={(event) => setNewPassword(event.target.value)}
+            className="mt-2 w-full border border-black/25 bg-white px-3 py-2 outline-none focus:border-black"
+          />
+        </label>
+        <p className="text-sm text-black/70">
+          En az 8 karakter; büyük harf, küçük harf ve rakam içermeli.
+        </p>
+        {notice && (
+          <p className="border border-red-700 bg-red-50 p-3 font-semibold text-red-900">{notice}</p>
+        )}
+        <button
+          disabled={saving}
+          className="focus-ring bg-black px-5 py-3 font-bold text-white disabled:opacity-50"
+        >
+          {saving ? "Kaydediliyor…" : "Şifreyi değiştir"}
+        </button>
+      </form>
     </>
   );
 }

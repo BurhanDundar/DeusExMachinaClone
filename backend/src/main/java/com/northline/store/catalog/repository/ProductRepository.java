@@ -9,5 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ProductRepository extends JpaRepository<Product, java.util.UUID> {
   List<Product> findByStatusOrderByFeaturedDescSortOrderAscNameAsc(ProductStatus status);
 
+  List<Product> findAllByOrderBySortOrderAscNameAsc();
+
   Optional<Product> findBySlugAndStatus(String slug, ProductStatus status);
 }

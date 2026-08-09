@@ -74,6 +74,8 @@ public class SecurityConfig {
           .permitAll()
           .requestMatchers("/api/users/**", "/api/cart/**", "/api/orders/**")
           .authenticated()
+          .requestMatchers("/api/admin/**")
+          .hasRole("ADMIN")
           .anyRequest()
           .denyAll()
       )

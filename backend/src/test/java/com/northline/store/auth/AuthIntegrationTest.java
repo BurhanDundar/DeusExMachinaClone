@@ -144,6 +144,39 @@ class AuthIntegrationTest {
     mvc.perform(post("/api/auth/refresh").cookie(cookie)).andExpect(status().isUnauthorized());
   }
 
+  @Test
+  void passwordChangeRequiresCurrentPasswordAndInvalidatesTheOldOne() throws Exception {
+    var registration = register("password@example.com").andReturn();
+    var accessToken = objectMapper
+      .readTree(registration.getResponse().getContentAsString())
+      .get("accessToken")
+      .asText();
+
+    mvc
+      .perform(
+        put("/api/users/me/password")
+          .header("Authorization", "Bearer " + accessToken)
+          .contentType(MediaType.APPLICATION_JSON)
+          .content("{\"currentPassword\":\"StrongPass1\",\"newPassword\":\"ChangedPass2\"}")
+      )
+      .andExpect(status().isNoContent());
+
+    mvc
+      .perform(
+        post("/api/auth/login")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(loginBody("password@example.com", "StrongPass1"))
+      )
+      .andExpect(status().isUnauthorized());
+    mvc
+      .perform(
+        post("/api/auth/login")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(loginBody("password@example.com", "ChangedPass2"))
+      )
+      .andExpect(status().isOk());
+  }
+
   private org.springframework.test.web.servlet.ResultActions register(String email)
     throws Exception {
     return mvc.perform(
