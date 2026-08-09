@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { fallbackProducts } from "@/data/products";
 import { useUIStore } from "@/store/ui-store";
 import { formatPrice } from "@/lib/currency";
 
@@ -11,8 +12,30 @@ type SearchProduct = {
   slug: string;
   name: string;
   price: number;
+  categoryName: string;
+};
+
+type CatalogSearchProduct = Omit<SearchProduct, "categoryName"> & {
   category: { name: string };
 };
+
+const fallbackSearchProducts: SearchProduct[] = fallbackProducts.map((product) => ({
+  id: product.id,
+  slug: product.slug,
+  name: product.name,
+  price: product.price,
+  categoryName: product.category,
+}));
+
+function toSearchProducts(products: CatalogSearchProduct[]): SearchProduct[] {
+  return products.map((product) => ({
+    id: product.id,
+    slug: product.slug,
+    name: product.name,
+    price: product.price,
+    categoryName: product.category.name,
+  }));
+}
 
 export function SearchDrawer() {
   const s = useUIStore();
@@ -23,15 +46,20 @@ export function SearchDrawer() {
     if (!s.searchOpen || products.length) return;
     fetch("/api/products")
       .then((response) => (response.ok ? response.json() : []))
-      .then((catalog: SearchProduct[]) => setProducts(catalog))
-      .catch(() => setProducts([]));
+      .then((catalog: CatalogSearchProduct[]) => {
+        setProducts(catalog.length ? toSearchProducts(catalog) : fallbackSearchProducts);
+      })
+      .catch(() => setProducts(fallbackSearchProducts));
   }, [products.length, s.searchOpen]);
 
   const found =
     q.length > 1
       ? products
           .filter((p) =>
-            [p.name, p.category.name].join(" ").toLowerCase().includes(q.toLowerCase())
+            [p.name, p.categoryName]
+              .join(" ")
+              .toLocaleLowerCase("tr-TR")
+              .includes(q.toLocaleLowerCase("tr-TR"))
           )
           .slice(0, 6)
       : [];

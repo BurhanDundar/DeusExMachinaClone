@@ -50,7 +50,7 @@ const standardSize = ["Standart"];
 
 // The API is the source of truth. These products keep the local storefront usable
 // when a local backend is not running or a hosted free instance is waking up.
-const offlineProducts: Product[] = [
+export const fallbackProducts: Product[] = [
   {
     id: "binks-01",
     slug: "kirmizi-paisley-bandana",
@@ -321,11 +321,11 @@ const offlineProducts: Product[] = [
 export async function getProducts(): Promise<Product[]> {
   try {
     const response = await fetch(`${catalogOrigin}/api/products`, { cache: "no-store" });
-    if (!response.ok) return offlineProducts;
+    if (!response.ok) return fallbackProducts;
     const catalogProducts = (await response.json()) as CatalogProduct[];
-    return catalogProducts.length ? catalogProducts.map(toProduct) : offlineProducts;
+    return catalogProducts.length ? catalogProducts.map(toProduct) : fallbackProducts;
   } catch {
-    return offlineProducts;
+    return fallbackProducts;
   }
 }
 
@@ -334,10 +334,10 @@ export async function productBySlug(slug: string): Promise<Product | undefined> 
     const response = await fetch(`${catalogOrigin}/api/products/${encodeURIComponent(slug)}`, {
       cache: "no-store",
     });
-    if (!response.ok) return offlineProducts.find((product) => product.slug === slug);
+    if (!response.ok) return fallbackProducts.find((product) => product.slug === slug);
     return toProduct((await response.json()) as CatalogProduct);
   } catch {
-    return offlineProducts.find((product) => product.slug === slug);
+    return fallbackProducts.find((product) => product.slug === slug);
   }
 }
 
