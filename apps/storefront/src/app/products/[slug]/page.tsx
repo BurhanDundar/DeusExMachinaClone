@@ -1,16 +1,15 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { products, productBySlug } from "@/data/products";
+import { getProducts, productBySlug } from "@/data/products";
 import { ProductSection } from "@/components/commerce/ProductSection";
 import { ProductPurchase } from "./purchase";
 import { Footer } from "@/components/layout/Footer";
 import { formatPrice } from "@/lib/currency";
-export function generateStaticParams() {
-  return products.map((p) => ({ slug: p.slug }));
-}
+export const dynamic = "force-dynamic";
+
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const p = productBySlug(slug);
+  const [p, products] = await Promise.all([productBySlug(slug), getProducts()]);
   if (!p) notFound();
   return (
     <main>
@@ -46,7 +45,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </details>
         </div>
       </div>
-      <ProductSection title="Related products" products={products.slice(4, 8)} />
+      <ProductSection
+        title="Benzer ürünler"
+        products={products.filter((product) => product.slug !== p.slug).slice(0, 8)}
+      />
       <Footer />
     </main>
   );

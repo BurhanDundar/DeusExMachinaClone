@@ -16,9 +16,11 @@ export function ProductCard({ product }: { product: Product }) {
         draggable={false}
         className="focus-ring relative block aspect-[4/5] overflow-hidden bg-[#f0f0ed]"
       >
-        <span className="absolute left-3 top-3 z-10 bg-paper px-1 text-xs font-bold">
-          {product.badge}
-        </span>
+        {product.badge && (
+          <span className="absolute left-3 top-3 z-10 bg-paper px-1 text-xs font-bold">
+            {product.badge}
+          </span>
+        )}
         <Image
           src={product.images[0]}
           alt={product.name}

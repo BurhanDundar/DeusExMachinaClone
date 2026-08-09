@@ -2,21 +2,36 @@
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Search, X } from "lucide-react";
-import { useState } from "react";
-import { products } from "@/data/products";
+import { useEffect, useState } from "react";
 import { useUIStore } from "@/store/ui-store";
 import { formatPrice } from "@/lib/currency";
+
+type SearchProduct = {
+  id: string;
+  slug: string;
+  name: string;
+  price: number;
+  category: { name: string };
+};
+
 export function SearchDrawer() {
   const s = useUIStore();
   const [q, setQ] = useState("");
+  const [products, setProducts] = useState<SearchProduct[]>([]);
+
+  useEffect(() => {
+    if (!s.searchOpen || products.length) return;
+    fetch("/api/products")
+      .then((response) => (response.ok ? response.json() : []))
+      .then((catalog: SearchProduct[]) => setProducts(catalog))
+      .catch(() => setProducts([]));
+  }, [products.length, s.searchOpen]);
+
   const found =
     q.length > 1
       ? products
           .filter((p) =>
-            [p.name, p.category, p.collection, ...p.tags]
-              .join(" ")
-              .toLowerCase()
-              .includes(q.toLowerCase())
+            [p.name, p.category.name].join(" ").toLowerCase().includes(q.toLowerCase())
           )
           .slice(0, 6)
       : [];

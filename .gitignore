@@ -9,3 +9,5 @@ pnpm-lock.yaml
 backend/target
 .idea
 *.iml
+.DS_Store
+apps/storefront/public/products/binks/*.zip

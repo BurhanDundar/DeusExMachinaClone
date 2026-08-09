@@ -30,11 +30,15 @@ class PostgresMigrationIntegrationTest {
   JdbcTemplate jdbc;
 
   @Test
-  void flywayCreatesAuthenticationSchema() {
+  void flywayCreatesStoreSchema() {
     assertThat(jdbc.queryForObject("select count(*) from users", Long.class)).isZero();
     assertThat(jdbc.queryForObject("select count(*) from refresh_tokens", Long.class)).isZero();
+    assertThat(jdbc.queryForObject("select count(*) from categories", Long.class)).isEqualTo(4);
+    assertThat(jdbc.queryForObject("select count(*) from products", Long.class)).isEqualTo(13);
+    assertThat(jdbc.queryForObject("select count(*) from product_variants", Long.class)).isZero();
+    assertThat(jdbc.queryForObject("select count(*) from product_images", Long.class)).isZero();
     assertThat(
       jdbc.queryForObject("select count(*) from flyway_schema_history where success", Long.class)
-    ).isEqualTo(2);
+    ).isEqualTo(4);
   }
 }

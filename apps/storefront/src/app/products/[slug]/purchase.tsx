@@ -7,7 +7,7 @@ export function ProductPurchase({ product }: { product: Product }) {
   const add = useUIStore((s) => s.add);
   return (
     <div className="mt-10">
-      <p className="mb-3 font-bold">Size</p>
+      <p className="mb-3 font-bold">Seçenek</p>
       <div className="grid grid-cols-6 gap-1">
         {product.sizes.map((x) => (
           <button

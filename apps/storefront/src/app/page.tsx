@@ -3,8 +3,16 @@ import { Campaign } from "@/components/home/Campaign";
 import { ProductSection } from "@/components/commerce/ProductSection";
 import { EditorialGrid } from "@/components/home/EditorialGrid";
 import { Footer } from "@/components/layout/Footer";
-import { products } from "@/data/products";
-export default function Home() {
+import { getProducts } from "@/data/products";
+
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const products = await getProducts();
+  const featuredProducts = products.filter((product) => product.featured);
+  const clothing = products.filter((product) => product.categorySlug === "giyim");
+  const accessories = products.filter((product) => product.categorySlug === "aksesuar");
+  const notebooks = products.filter((product) => product.categorySlug === "defterler");
   return (
     <main>
       <Campaign
@@ -12,21 +20,21 @@ export default function Home() {
         kicker="Autumn / Winter 26"
         title="Built for the long way round."
       />
-      <ProductSection title="New Arrivals" products={products.slice(0, 8)} />
+      <ProductSection title="Yeni Gelenler" products={featuredProducts} />
       <Campaign
         image="/campaign/campaign-wide.jpg"
         kicker="Motion studies / 01"
         title="City limits are only suggestions."
         portrait
       />
-      <ProductSection title="Workshop Classics" products={products.slice(8, 16)} />
+      <ProductSection title="Atölye Giyimi" products={clothing} />
       <section className="shell">
         <div className="grid gap-2 md:grid-cols-2">
           <CampaignTile image="/campaign/campaign-portrait.jpg" title="Mens" />
           <CampaignTile image="/campaign/campaign-wide.jpg" title="Womens" />
         </div>
       </section>
-      <ProductSection title="Motion Studies" products={products.slice(16, 24)} />
+      <ProductSection title="Aksesuarlar ve Defterler" products={[...accessories, ...notebooks]} />
       <EditorialGrid />
       <Footer />
     </main>
