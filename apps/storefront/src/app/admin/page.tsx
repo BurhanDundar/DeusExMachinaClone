@@ -280,10 +280,21 @@ export default function AdminPage() {
                     onClick={() => setSelectedId(product.id)}
                     className={`focus-ring flex w-full items-center justify-between gap-4 py-4 text-left ${selectedId === product.id ? "bg-fog px-3" : ""}`}
                   >
-                    <span>
-                      <strong className="block">{product.name}</strong>
-                      <span className="text-sm">
-                        {product.status} · {formatPrice(product.price)}
+                    <span className="flex min-w-0 items-center gap-3">
+                      <span className="h-16 w-16 shrink-0 overflow-hidden bg-fog">
+                        {product.images[0]?.url ? (
+                          <img
+                            src={product.images[0].url}
+                            alt={product.images[0].altText || product.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : null}
+                      </span>
+                      <span className="min-w-0">
+                        <strong className="block truncate">{product.name}</strong>
+                        <span className="text-sm">
+                          {product.status} · {formatPrice(product.price)}
+                        </span>
                       </span>
                     </span>
                     <Pencil size={17} />
@@ -468,35 +479,72 @@ function ProductEditor({
       <section>
         <h3 className="font-bold">Görseller</h3>
         {form.images.map((image, index) => (
-          <div key={index} className="mt-2 flex gap-2">
-            <input
-              required
-              placeholder="/products/... veya görsel URL’si"
-              value={image.url}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  images: form.images.map((entry, entryIndex) =>
-                    entryIndex === index ? { ...entry, url: e.target.value } : entry
-                  ),
-                })
-              }
-              className={input}
-            />
-            {form.images.length > 1 && (
-              <button
-                type="button"
-                onClick={() =>
-                  setForm({
-                    ...form,
-                    images: form.images.filter((_, entryIndex) => entryIndex !== index),
-                  })
-                }
-                className="focus-ring"
-              >
-                <X />
-              </button>
-            )}
+          <div
+            key={index}
+            className="mt-3 grid gap-3 border border-black/15 p-3 sm:grid-cols-[9rem_1fr]"
+          >
+            <div className="aspect-square overflow-hidden bg-fog">
+              {image.url ? (
+                <img
+                  src={image.url}
+                  alt={image.altText || form.name || "Ürün görseli"}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="flex h-full items-center justify-center px-4 text-center text-sm font-semibold text-black/55">
+                  Görsel önizlemesi
+                </span>
+              )}
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="font-bold">
+                Görsel URL’si
+                <input
+                  required
+                  placeholder="/products/... veya görsel URL’si"
+                  value={image.url}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      images: form.images.map((entry, entryIndex) =>
+                        entryIndex === index ? { ...entry, url: e.target.value } : entry
+                      ),
+                    })
+                  }
+                  className={`${input} mt-2`}
+                />
+              </label>
+              <label className="font-bold">
+                Alt metin
+                <input
+                  placeholder="Örn. Siyah mekanik sanat tişörtü"
+                  value={image.altText ?? ""}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      images: form.images.map((entry, entryIndex) =>
+                        entryIndex === index ? { ...entry, altText: e.target.value } : entry
+                      ),
+                    })
+                  }
+                  className={`${input} mt-2`}
+                />
+              </label>
+              {form.images.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm({
+                      ...form,
+                      images: form.images.filter((_, entryIndex) => entryIndex !== index),
+                    })
+                  }
+                  className="focus-ring mt-auto flex w-fit items-center gap-1 font-bold"
+                >
+                  <X size={16} /> Görseli kaldır
+                </button>
+              )}
+            </div>
           </div>
         ))}
         <button
