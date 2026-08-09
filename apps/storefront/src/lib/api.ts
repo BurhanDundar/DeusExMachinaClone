@@ -1,4 +1,8 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+
+// API callers use paths such as `/api/auth/login`. In production, Vercel proxies
+// the same `/api` path to Render, so avoid building `/api/api/...` URLs.
+export const API_URL = configuredApiUrl.replace(/\/api\/?$/, "");
 
 export type ApiErrorBody = {
   code: string;
