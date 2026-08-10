@@ -12,6 +12,7 @@ public record ProductVariantResponse(
   String size,
   BigDecimal price,
   int stockQuantity,
+  boolean active,
   boolean available
 ) {
   public static ProductVariantResponse from(ProductVariant variant) {
@@ -23,6 +24,7 @@ public record ProductVariantResponse(
       variant.getSize(),
       variant.getPrice(),
       variant.getStockQuantity(),
+      variant.isActive(),
       variant.isActive() && variant.getStockQuantity() > 0
     );
   }

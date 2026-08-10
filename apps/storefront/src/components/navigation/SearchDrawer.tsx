@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { fallbackProducts } from "@/data/products";
+import { apiRequest } from "@/lib/api";
 import { useUIStore } from "@/store/ui-store";
 import { formatPrice } from "@/lib/currency";
 
@@ -41,16 +42,31 @@ export function SearchDrawer() {
   const s = useUIStore();
   const [q, setQ] = useState("");
   const [products, setProducts] = useState<SearchProduct[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
   useEffect(() => {
-    if (!s.searchOpen || products.length) return;
-    fetch("/api/products")
-      .then((response) => (response.ok ? response.json() : []))
-      .then((catalog: CatalogSearchProduct[]) => {
-        setProducts(catalog.length ? toSearchProducts(catalog) : fallbackSearchProducts);
+    if (!s.searchOpen) return;
+
+    const controller = new AbortController();
+    setLoadingProducts(true);
+    apiRequest<CatalogSearchProduct[]>("/api/products", { signal: controller.signal })
+      .then((catalog) => {
+        if (!controller.signal.aborted) {
+          setProducts(catalog.length ? toSearchProducts(catalog) : fallbackSearchProducts);
+        }
       })
-      .catch(() => setProducts(fallbackSearchProducts));
-  }, [products.length, s.searchOpen]);
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) {
+          console.error("Catalog search could not load", error);
+          setProducts(fallbackSearchProducts);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoadingProducts(false);
+      });
+
+    return () => controller.abort();
+  }, [s.searchOpen]);
 
   const found =
     q.length > 1
@@ -108,7 +124,8 @@ export function SearchDrawer() {
                   <span>{formatPrice(p.price)}</span>
                 </Link>
               ))}
-              {q.length > 1 && !found.length && <p>No products found.</p>}
+              {q.length > 1 && loadingProducts && <p>Ürünler güncelleniyor…</p>}
+              {q.length > 1 && !loadingProducts && !found.length && <p>Ürün bulunamadı.</p>}
             </div>
           </motion.aside>
         </>

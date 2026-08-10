@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Archive, Check, Pencil, Plus, Save, X } from "lucide-react";
+import { Archive, Check, ImageIcon, Pencil, Plus, Save, X } from "lucide-react";
 import { useAuth } from "@/auth/AuthProvider";
 import { ApiError } from "@/lib/api";
 import { formatPrice } from "@/lib/currency";
@@ -16,14 +16,16 @@ type AdminCategory = {
   active: boolean;
 };
 
-type ProductImage = { url: string; altText: string | null };
+type ProductImage = { id?: string; url: string; altText: string | null };
 type ProductVariant = {
+  id?: string;
   title: string;
   sku: string;
   color: string | null;
   size: string | null;
   price: number | null;
   stockQuantity: number;
+  active: boolean;
   available: boolean;
 };
 type AdminProduct = {
@@ -71,6 +73,7 @@ function blankProduct(categories: AdminCategory[]): ProductForm {
         size: "",
         price: null,
         stockQuantity: 0,
+        active: true,
         available: true,
       },
     ],
@@ -82,7 +85,10 @@ function formFromProduct(product: AdminProduct): ProductForm {
     ...product,
     categoryId: product.category.id,
     images: product.images.length ? product.images : [{ url: "", altText: "" }],
-    variants: product.variants.map((variant) => ({ ...variant })),
+    variants: product.variants.map((variant) => ({
+      ...variant,
+      active: variant.active ?? variant.available,
+    })),
   };
 }
 
@@ -171,32 +177,55 @@ export default function AdminPage() {
     setMessage("");
     try {
       const body = {
-        ...productForm,
+        categoryId: productForm.categoryId,
+        name: productForm.name.trim(),
+        slug: productForm.slug.trim(),
+        description: productForm.description.trim(),
+        status: productForm.status,
+        price: productForm.price,
         badge: productForm.badge || null,
         compareAtPrice: productForm.compareAtPrice || null,
+        featured: productForm.featured,
+        sortOrder: productForm.sortOrder,
         images: productForm.images
           .filter((image) => image.url.trim())
-          .map((image, sortOrder) => ({ ...image, sortOrder })),
+          .map((image, sortOrder) => ({
+            id: image.id,
+            url: image.url.trim(),
+            altText: image.altText?.trim() || null,
+            sortOrder,
+          })),
         variants: productForm.variants.map((variant, sortOrder) => ({
-          ...variant,
+          id: variant.id,
+          title: variant.title.trim(),
+          sku: variant.sku.trim(),
           color: variant.color || null,
           size: variant.size || null,
           price: variant.price || null,
-          active: variant.available,
+          stockQuantity: variant.stockQuantity,
+          active: variant.active,
           sortOrder,
         })),
       };
       const path = selectedId
         ? `/api/admin/catalog/products/${selectedId}`
         : "/api/admin/catalog/products";
-      await authenticatedFetch(path, {
+      const savedProduct = await authenticatedFetch<AdminProduct>(path, {
         method: selectedId ? "PUT" : "POST",
         body: JSON.stringify(body),
       });
       await reload();
+      setSelectedId(savedProduct.id);
+      setProductForm(formFromProduct(savedProduct));
       setMessage("Ürün kaydedildi.");
     } catch (error) {
-      setMessage(error instanceof ApiError ? error.message : "Ürün kaydedilemedi.");
+      setMessage(
+        error instanceof ApiError
+          ? error.body.fieldErrors && Object.keys(error.body.fieldErrors).length
+            ? `Ürünü kaydetmek için şu alanları kontrol et: ${Object.values(error.body.fieldErrors).join(", ")}`
+            : error.message
+          : "Ürün kaydedilemedi. Lütfen tekrar dene."
+      );
     } finally {
       setSaving(false);
     }
@@ -268,36 +297,54 @@ export default function AdminPage() {
                 onClick={() => {
                   setSelectedId(null);
                   setProductForm(blankProduct(categories));
+                  setMessage("");
                 }}
                 className="focus-ring mb-4 flex items-center gap-2 bg-black px-4 py-3 font-bold text-white"
               >
                 <Plus size={17} /> Yeni ürün
               </button>
-              <div className="divide-y border-y border-black/20">
+              <div className="mb-4 flex items-end justify-between gap-4 border-b border-black/20 pb-4">
+                <div>
+                  <h2 className="display text-3xl">Ürünler</h2>
+                  <p className="mt-1 text-sm text-black/65">
+                    Bir ürünü seçerek bilgilerini, görsellerini ve stoklarını düzenle.
+                  </p>
+                </div>
+                <span className="shrink-0 font-bold">{products.length} ürün</span>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
                 {products.map((product) => (
                   <button
                     key={product.id}
-                    onClick={() => setSelectedId(product.id)}
-                    className={`focus-ring flex w-full items-center justify-between gap-4 py-4 text-left ${selectedId === product.id ? "bg-fog px-3" : ""}`}
+                    onClick={() => {
+                      setSelectedId(product.id);
+                      setMessage("");
+                    }}
+                    className={`focus-ring group overflow-hidden border text-left transition-colors ${selectedId === product.id ? "border-black bg-fog" : "border-black/20 bg-white hover:border-black"}`}
                   >
-                    <span className="flex min-w-0 items-center gap-3">
-                      <span className="h-16 w-16 shrink-0 overflow-hidden bg-fog">
-                        {product.images[0]?.url ? (
-                          <img
-                            src={product.images[0].url}
-                            alt={product.images[0].altText || product.name}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : null}
-                      </span>
+                    <span className="block aspect-[4/3] overflow-hidden bg-fog">
+                      {product.images[0]?.url ? (
+                        <img
+                          src={product.images[0].url}
+                          alt={product.images[0].altText || product.name}
+                          className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
+                        />
+                      ) : (
+                        <ImageIcon
+                          className="m-auto h-full w-10 text-black/35"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </span>
+                    <span className="flex items-start justify-between gap-3 p-3">
                       <span className="min-w-0">
                         <strong className="block truncate">{product.name}</strong>
-                        <span className="text-sm">
+                        <span className="mt-1 block text-sm text-black/70">
                           {product.status} · {formatPrice(product.price)}
                         </span>
                       </span>
+                      <Pencil className="mt-0.5 shrink-0" size={17} />
                     </span>
-                    <Pencil size={17} />
                   </button>
                 ))}
               </div>
@@ -310,6 +357,10 @@ export default function AdminPage() {
                 saving={saving}
                 onSubmit={saveProduct}
                 onArchive={selectedId ? archiveProduct : undefined}
+                onCancel={() => {
+                  setProductForm(selectedProduct ? formFromProduct(selectedProduct) : null);
+                  setSelectedId(selectedProduct?.id ?? null);
+                }}
               />
             )}
           </div>
@@ -369,6 +420,7 @@ function ProductEditor({
   saving,
   onSubmit,
   onArchive,
+  onCancel,
 }: {
   form: ProductForm;
   categories: AdminCategory[];
@@ -376,32 +428,47 @@ function ProductEditor({
   saving: boolean;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onArchive?: () => void;
+  onCancel: () => void;
 }) {
   const input = "w-full border border-black/25 bg-white px-3 py-2 outline-none focus:border-black";
   return (
-    <form onSubmit={onSubmit} className="space-y-6 border border-black p-5">
-      <div className="flex items-center justify-between">
-        <h2 className="display text-3xl">Ürün bilgisi</h2>
-        {onArchive && (
-          <button
-            type="button"
-            onClick={onArchive}
-            className="focus-ring flex items-center gap-1 font-bold"
-          >
-            <Archive size={16} /> Arşivle
+    <form onSubmit={onSubmit} className="space-y-6 border border-black bg-white p-5 sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-black/20 pb-5">
+        <div>
+          <h2 className="display text-3xl">Ürün düzenle</h2>
+          <p className="mt-1 text-sm text-black/65">
+            Bilgileri değiştir, ardından en alttaki kaydet düğmesini kullan.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={onCancel} className="focus-ring font-bold underline">
+            Vazgeç
           </button>
-        )}
+          {onArchive && (
+            <button
+              type="button"
+              onClick={onArchive}
+              className="focus-ring flex items-center gap-1 font-bold"
+            >
+              <Archive size={16} /> Arşivle
+            </button>
+          )}
+        </div>
       </div>
-      <label className="block font-bold">
-        Ürün adı
-        <input
-          required
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className={`${input} mt-2`}
-        />
-      </label>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <section>
+        <h3 className="font-bold">Temel bilgiler</h3>
+        <p className="mt-1 text-sm text-black/65">Mağazada görünen ürün bilgileri.</p>
+        <label className="mt-4 block font-bold">
+          Ürün adı
+          <input
+            required
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className={`${input} mt-2`}
+          />
+        </label>
+      </section>
+      <div className="grid gap-4 border-t border-black/15 pt-6 sm:grid-cols-2">
         <label className="font-bold">
           Slug
           <input
@@ -426,7 +493,7 @@ function ProductEditor({
           </select>
         </label>
       </div>
-      <label className="block font-bold">
+      <label className="block border-t border-black/15 pt-6 font-bold">
         Açıklama
         <textarea
           required
@@ -435,49 +502,76 @@ function ProductEditor({
           className={`${input} mt-2 min-h-28`}
         />
       </label>
-      <div className="grid gap-4 sm:grid-cols-3">
-        <label className="font-bold">
-          Fiyat
+      <section className="border-t border-black/15 pt-6">
+        <h3 className="font-bold">Satış ayarları</h3>
+        <p className="mt-1 text-sm text-black/65">Fiyat, görünürlük ve vitrin bilgileri.</p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <label className="font-bold">
+            Fiyat (₺)
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              required
+              value={form.price}
+              onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+              className={`${input} mt-2`}
+            />
+          </label>
+          <label className="font-bold">
+            İndirim öncesi fiyat (₺)
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Opsiyonel"
+              value={form.compareAtPrice ?? ""}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  compareAtPrice: e.target.value === "" ? null : Number(e.target.value),
+                })
+              }
+              className={`${input} mt-2`}
+            />
+          </label>
+          <label className="font-bold">
+            Durum
+            <select
+              value={form.status}
+              onChange={(e) =>
+                setForm({ ...form, status: e.target.value as ProductForm["status"] })
+              }
+              className={`${input} mt-2`}
+            >
+              {statuses.map((status) => (
+                <option key={status}>{status}</option>
+              ))}
+            </select>
+          </label>
+          <label className="font-bold">
+            Rozet
+            <input
+              value={form.badge ?? ""}
+              onChange={(e) => setForm({ ...form, badge: e.target.value })}
+              className={`${input} mt-2`}
+            />
+          </label>
+        </div>
+        <label className="mt-4 flex items-center gap-2 font-bold">
           <input
-            type="number"
-            min="0"
-            required
-            value={form.price}
-            onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
-            className={`${input} mt-2`}
-          />
+            type="checkbox"
+            checked={form.featured}
+            onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+          />{" "}
+          Ana sayfada öne çıkan ürün olarak göster
         </label>
-        <label className="font-bold">
-          Durum
-          <select
-            value={form.status}
-            onChange={(e) => setForm({ ...form, status: e.target.value as ProductForm["status"] })}
-            className={`${input} mt-2`}
-          >
-            {statuses.map((status) => (
-              <option key={status}>{status}</option>
-            ))}
-          </select>
-        </label>
-        <label className="font-bold">
-          Rozet
-          <input
-            value={form.badge ?? ""}
-            onChange={(e) => setForm({ ...form, badge: e.target.value })}
-            className={`${input} mt-2`}
-          />
-        </label>
-      </div>
-      <label className="flex items-center gap-2 font-bold">
-        <input
-          type="checkbox"
-          checked={form.featured}
-          onChange={(e) => setForm({ ...form, featured: e.target.checked })}
-        />{" "}
-        Öne çıkan ürün
-      </label>
-      <section>
-        <h3 className="font-bold">Görseller</h3>
+      </section>
+      <section className="border-t border-black/15 pt-6">
+        <h3 className="font-bold">Ürün görselleri</h3>
+        <p className="mt-1 text-sm text-black/65">
+          İlk görsel ürünün kapak görseli olarak kullanılır. Sıralama ekleme sırasına göredir.
+        </p>
         {form.images.map((image, index) => (
           <div
             key={index}
@@ -555,82 +649,113 @@ function ProductEditor({
           <Plus size={15} /> Görsel ekle
         </button>
       </section>
-      <section>
+      <section className="border-t border-black/15 pt-6">
         <h3 className="font-bold">Varyantlar ve stok</h3>
+        <p className="mt-1 text-sm text-black/65">
+          Her varyant için benzersiz bir SKU ve mevcut stok miktarı gir.
+        </p>
         {form.variants.map((variant, index) => (
-          <div key={index} className="mt-3 grid gap-2 border border-black/15 p-3 sm:grid-cols-2">
-            <input
-              required
-              placeholder="Varyant adı"
-              value={variant.title}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  variants: form.variants.map((entry, entryIndex) =>
-                    entryIndex === index ? { ...entry, title: e.target.value } : entry
-                  ),
-                })
-              }
-              className={input}
-            />
-            <input
-              required
-              placeholder="SKU"
-              value={variant.sku}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  variants: form.variants.map((entry, entryIndex) =>
-                    entryIndex === index ? { ...entry, sku: e.target.value } : entry
-                  ),
-                })
-              }
-              className={input}
-            />
-            <input
-              placeholder="Beden"
-              value={variant.size ?? ""}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  variants: form.variants.map((entry, entryIndex) =>
-                    entryIndex === index ? { ...entry, size: e.target.value } : entry
-                  ),
-                })
-              }
-              className={input}
-            />
-            <input
-              type="number"
-              min="0"
-              placeholder="Stok"
-              value={variant.stockQuantity}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  variants: form.variants.map((entry, entryIndex) =>
-                    entryIndex === index
-                      ? { ...entry, stockQuantity: Number(e.target.value) }
-                      : entry
-                  ),
-                })
-              }
-              className={input}
-            />
-            {form.variants.length > 1 && (
-              <button
-                type="button"
-                onClick={() =>
-                  setForm({
-                    ...form,
-                    variants: form.variants.filter((_, entryIndex) => entryIndex !== index),
-                  })
-                }
-                className="focus-ring text-left font-bold"
-              >
-                Varyantı kaldır
-              </button>
-            )}
+          <div key={index} className="mt-3 border border-black/15 p-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="font-bold">
+                Varyant adı
+                <input
+                  required
+                  value={variant.title}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      variants: form.variants.map((entry, entryIndex) =>
+                        entryIndex === index ? { ...entry, title: e.target.value } : entry
+                      ),
+                    })
+                  }
+                  className={`${input} mt-2`}
+                />
+              </label>
+              <label className="font-bold">
+                SKU
+                <input
+                  required
+                  value={variant.sku}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      variants: form.variants.map((entry, entryIndex) =>
+                        entryIndex === index ? { ...entry, sku: e.target.value } : entry
+                      ),
+                    })
+                  }
+                  className={`${input} mt-2`}
+                />
+              </label>
+              <label className="font-bold">
+                Beden
+                <input
+                  placeholder="Örn. Standart veya M"
+                  value={variant.size ?? ""}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      variants: form.variants.map((entry, entryIndex) =>
+                        entryIndex === index ? { ...entry, size: e.target.value } : entry
+                      ),
+                    })
+                  }
+                  className={`${input} mt-2`}
+                />
+              </label>
+              <label className="font-bold">
+                Stok adedi
+                <input
+                  type="number"
+                  min="0"
+                  value={variant.stockQuantity}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      variants: form.variants.map((entry, entryIndex) =>
+                        entryIndex === index
+                          ? { ...entry, stockQuantity: Number(e.target.value) }
+                          : entry
+                      ),
+                    })
+                  }
+                  className={`${input} mt-2`}
+                />
+              </label>
+            </div>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <label className="flex items-center gap-2 font-bold">
+                <input
+                  type="checkbox"
+                  checked={variant.active}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      variants: form.variants.map((entry, entryIndex) =>
+                        entryIndex === index ? { ...entry, active: e.target.checked } : entry
+                      ),
+                    })
+                  }
+                />
+                Satışa açık
+              </label>
+              {form.variants.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm({
+                      ...form,
+                      variants: form.variants.filter((_, entryIndex) => entryIndex !== index),
+                    })
+                  }
+                  className="focus-ring font-bold underline"
+                >
+                  Varyantı kaldır
+                </button>
+              )}
+            </div>
           </div>
         ))}
         <button
@@ -647,6 +772,7 @@ function ProductEditor({
                   size: "",
                   price: null,
                   stockQuantity: 0,
+                  active: true,
                   available: true,
                 },
               ],
@@ -661,7 +787,7 @@ function ProductEditor({
         disabled={saving}
         className="focus-ring flex w-full items-center justify-center gap-2 bg-black py-4 font-bold text-white disabled:opacity-50"
       >
-        <Save size={17} /> {saving ? "Kaydediliyor…" : "Ürünü kaydet"}
+        <Save size={17} /> {saving ? "Kaydediliyor…" : "Değişiklikleri kaydet"}
       </button>
     </form>
   );

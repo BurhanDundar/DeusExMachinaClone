@@ -14,7 +14,10 @@ import com.northline.store.catalog.entity.ProductVariant;
 import com.northline.store.catalog.repository.CategoryRepository;
 import com.northline.store.catalog.repository.ProductRepository;
 import com.northline.store.common.exception.ApiException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -102,26 +105,90 @@ public class AdminCatalogService {
     product.setFeatured(request.featured());
     product.setSortOrder(request.sortOrder());
 
-    product.getImages().clear();
-    request.images().forEach(imageRequest -> product.getImages().add(image(product, imageRequest)));
-    product.getVariants().clear();
-    request
-      .variants()
-      .forEach(variantRequest -> product.getVariants().add(variant(product, variantRequest)));
+    syncImages(product, request.images());
+    syncVariants(product, request.variants());
   }
 
-  private ProductImage image(Product product, ProductImageUpsertRequest request) {
-    var image = new ProductImage();
-    image.setProduct(product);
+  private void syncImages(Product product, List<ProductImageUpsertRequest> requests) {
+    var existing = indexImages(product.getImages());
+    var requestedIds = requestedIds(requests.stream().map(ProductImageUpsertRequest::id).toList());
+    product.getImages().removeIf(image -> !requestedIds.contains(image.getId()));
+
+    for (var request : requests) {
+      var image = request.id() == null ? new ProductImage() : existing.get(request.id());
+      if (image == null) {
+        throw new ApiException(
+          "PRODUCT_IMAGE_NOT_FOUND",
+          "Product image was not found",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+      if (request.id() == null) {
+        image.setProduct(product);
+        product.getImages().add(image);
+      }
+      applyImage(image, request);
+    }
+  }
+
+  private void syncVariants(Product product, List<ProductVariantUpsertRequest> requests) {
+    var existing = indexVariants(product.getVariants());
+    var requestedIds = requestedIds(
+      requests.stream().map(ProductVariantUpsertRequest::id).toList()
+    );
+    var removed = product
+      .getVariants()
+      .removeIf(variant -> !requestedIds.contains(variant.getId()));
+
+    // A removed SKU may be re-used by a newly added variant in the same request.
+    // Flush the orphan removal first so the database's unique SKU constraint is respected.
+    if (removed && product.getId() != null) {
+      products.flush();
+    }
+
+    for (var request : requests) {
+      var variant = request.id() == null ? new ProductVariant() : existing.get(request.id());
+      if (variant == null) {
+        throw new ApiException(
+          "PRODUCT_VARIANT_NOT_FOUND",
+          "Product variant was not found",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+      if (request.id() == null) {
+        variant.setProduct(product);
+        product.getVariants().add(variant);
+      }
+      applyVariant(variant, request);
+    }
+  }
+
+  private Map<UUID, ProductImage> indexImages(List<ProductImage> images) {
+    var result = new HashMap<UUID, ProductImage>();
+    images.forEach(image -> result.put(image.getId(), image));
+    return result;
+  }
+
+  private Map<UUID, ProductVariant> indexVariants(List<ProductVariant> variants) {
+    var result = new HashMap<UUID, ProductVariant>();
+    variants.forEach(variant -> result.put(variant.getId(), variant));
+    return result;
+  }
+
+  private Set<UUID> requestedIds(List<UUID> ids) {
+    return ids
+      .stream()
+      .filter(java.util.Objects::nonNull)
+      .collect(java.util.stream.Collectors.toSet());
+  }
+
+  private void applyImage(ProductImage image, ProductImageUpsertRequest request) {
     image.setUrl(request.url().trim());
     image.setAltText(blankToNull(request.altText()));
     image.setSortOrder(request.sortOrder());
-    return image;
   }
 
-  private ProductVariant variant(Product product, ProductVariantUpsertRequest request) {
-    var variant = new ProductVariant();
-    variant.setProduct(product);
+  private void applyVariant(ProductVariant variant, ProductVariantUpsertRequest request) {
     variant.setTitle(request.title().trim());
     variant.setSku(request.sku().trim().toUpperCase(java.util.Locale.ROOT));
     variant.setColor(blankToNull(request.color()));
@@ -130,7 +197,6 @@ public class AdminCatalogService {
     variant.setStockQuantity(request.stockQuantity());
     variant.setActive(request.active());
     variant.setSortOrder(request.sortOrder());
-    return variant;
   }
 
   private Category category(UUID id) {
