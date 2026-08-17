@@ -3,7 +3,6 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { fallbackProducts } from "@/data/products";
 import { apiRequest } from "@/lib/api";
 import { useUIStore } from "@/store/ui-store";
 import { formatPrice } from "@/lib/currency";
@@ -20,14 +19,6 @@ type CatalogSearchProduct = Omit<SearchProduct, "categoryName"> & {
   category: { name: string };
 };
 
-const fallbackSearchProducts: SearchProduct[] = fallbackProducts.map((product) => ({
-  id: product.id,
-  slug: product.slug,
-  name: product.name,
-  price: product.price,
-  categoryName: product.category,
-}));
-
 function toSearchProducts(products: CatalogSearchProduct[]): SearchProduct[] {
   return products.map((product) => ({
     id: product.id,
@@ -43,22 +34,24 @@ export function SearchDrawer() {
   const [q, setQ] = useState("");
   const [products, setProducts] = useState<SearchProduct[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [catalogError, setCatalogError] = useState(false);
 
   useEffect(() => {
     if (!s.searchOpen) return;
 
     const controller = new AbortController();
     setLoadingProducts(true);
+    setCatalogError(false);
     apiRequest<CatalogSearchProduct[]>("/api/products", { signal: controller.signal })
       .then((catalog) => {
         if (!controller.signal.aborted) {
-          setProducts(catalog.length ? toSearchProducts(catalog) : fallbackSearchProducts);
+          setProducts(toSearchProducts(catalog));
         }
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted) {
-          console.error("Catalog search could not load", error);
-          setProducts(fallbackSearchProducts);
+          setCatalogError(true);
+          setProducts([]);
         }
       })
       .finally(() => {
@@ -125,7 +118,14 @@ export function SearchDrawer() {
                 </Link>
               ))}
               {q.length > 1 && loadingProducts && <p>Ürünler güncelleniyor…</p>}
-              {q.length > 1 && !loadingProducts && !found.length && <p>Ürün bulunamadı.</p>}
+              {q.length > 1 && catalogError && (
+                <p className="border border-red-700 bg-red-50 p-3 text-red-900">
+                  Ürün kataloğuna erişilemedi. Lütfen daha sonra tekrar deneyin.
+                </p>
+              )}
+              {q.length > 1 && !loadingProducts && !catalogError && !found.length && (
+                <p>Ürün bulunamadı.</p>
+              )}
             </div>
           </motion.aside>
         </>

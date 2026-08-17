@@ -13,9 +13,13 @@
 - Production cookies use `Secure`; `SameSite` is configurable for separate
   frontend/API domains.
 - Authentication errors do not disclose whether an account exists.
-- `/api/users/**` requires authentication. Future admin APIs will use
-  `ROLE_ADMIN` without changing the user model.
+- Password-reset links use 256-bit random, single-use tokens that expire after
+  30 minutes; only their SHA-256 digests are stored.
+- A successful password reset revokes every active refresh token for the user.
+- `/api/users/**` requires authentication and `/api/admin/**` requires
+  `ROLE_ADMIN`.
 
 For local development the cookie may be non-Secure so `http://localhost` works.
 Production must set `COOKIE_SECURE=true`, a strong secret, and explicit allowed
-origins.
+origins. Password-reset delivery additionally requires a Resend key and a
+verified `EMAIL_FROM` domain.

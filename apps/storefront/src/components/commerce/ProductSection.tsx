@@ -11,10 +11,12 @@ export function ProductSection({
   title,
   products,
   anchor,
+  href,
 }: {
   title: string;
   products: Product[];
   anchor?: string;
+  href: string;
 }) {
   const viewport = useRef<HTMLDivElement>(null);
   const suppressProductClick = useRef(false);
@@ -109,10 +111,7 @@ export function ProductSection({
     <section id={anchor} className="section-space shell">
       <div className="mb-10 flex items-end justify-between md:mb-16">
         <h2 className="display text-3xl md:text-4xl">{title}</h2>
-        <Link
-          href={`/collections/${title.toLowerCase().replaceAll(" ", "-")}`}
-          className="focus-ring flex items-center gap-2 font-bold"
-        >
+        <Link href={href} className="focus-ring flex items-center gap-2 font-bold">
           <ArrowRight /> Tümünü gör
         </Link>
       </div>

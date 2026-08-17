@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { Globe2 } from "lucide-react";
 import { Newsletter } from "@/components/home/Newsletter";
+import { aboutLinks, legalLinks, supportLinks } from "@/data/navigation";
+
 const groups = [
-  { title: "Destek", links: ["İletişim", "Kargo", "İade", "Beden rehberi"] },
-  { title: "Hakkımızda", links: ["Marka hakkında"] },
-  { title: "Sosyal medya", links: ["Instagram", "YouTube", "Facebook"] },
+  { title: "Destek", links: supportLinks },
+  { title: "Hakkımızda", links: aboutLinks },
+  { title: "Yasal", links: legalLinks },
 ];
 export function Footer() {
   return (
@@ -15,10 +17,10 @@ export function Footer() {
           <div key={group.title}>
             <h3 className="mb-4 text-lg font-bold">{group.title}</h3>
             <ul className="space-y-2">
-              {group.links.map((x) => (
-                <li key={x}>
-                  <Link href={x === "Marka hakkında" ? "/about" : "#"} className="focus-ring">
-                    {x}
+              {group.links.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="focus-ring">
+                    {link.label}
                   </Link>
                 </li>
               ))}
@@ -34,7 +36,10 @@ export function Footer() {
       </div>
       <div className="flex flex-col gap-4 bg-[#e6e5e1] px-6 pb-8 text-xs md:flex-row md:justify-between md:px-12">
         <span>© 2026 Northline Supply. Tüm hakları saklıdır.</span>
-        <span>Gizlilik · Koşullar</span>
+        <span className="flex gap-3">
+          <Link href="/privacy">Gizlilik</Link>
+          <Link href="/terms">Koşullar</Link>
+        </span>
       </div>
     </footer>
   );

@@ -31,6 +31,10 @@ management:
         include: health,info
 
 app:
+  storefront-url: ${STOREFRONT_URL:http://localhost:3000}
+  email:
+    resend-api-key: ${RESEND_API_KEY:${EMAIL_PROVIDER_KEY:}}
+    from: ${EMAIL_FROM:Northline Supply <onboarding@resend.dev>}
   jwt:
     secret: ${JWT_SECRET:change-this-development-secret-with-at-least-32-bytes}
     access-token-minutes: ${JWT_ACCESS_TOKEN_MINUTES:15}

@@ -63,7 +63,7 @@ public class SecurityConfig {
       .exceptionHandling(errors -> errors.authenticationEntryPoint(entryPoint))
       .authorizeHttpRequests(auth ->
         auth
-          .requestMatchers("/api/auth/**", "/actuator/health")
+          .requestMatchers("/api/auth/**", "/api/newsletter/subscriptions", "/actuator/health")
           .permitAll()
           .requestMatchers(
             org.springframework.http.HttpMethod.GET,

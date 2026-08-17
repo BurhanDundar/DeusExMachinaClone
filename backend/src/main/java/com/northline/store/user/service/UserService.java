@@ -51,7 +51,7 @@ public class UserService {
     if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
       throw new ApiException(
         "INVALID_CURRENT_PASSWORD",
-        "Current password is incorrect",
+        "Mevcut şifre hatalı.",
         HttpStatus.BAD_REQUEST
       );
     }
@@ -63,7 +63,7 @@ public class UserService {
     return users
       .findById(id)
       .orElseThrow(() ->
-        new ApiException("USER_NOT_FOUND", "User account was not found", HttpStatus.NOT_FOUND)
+        new ApiException("USER_NOT_FOUND", "Kullanıcı hesabı bulunamadı.", HttpStatus.NOT_FOUND)
       );
   }
 }

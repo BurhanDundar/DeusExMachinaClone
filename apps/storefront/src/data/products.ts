@@ -321,11 +321,12 @@ export const fallbackProducts: Product[] = [
 export async function getProducts(): Promise<Product[]> {
   try {
     const response = await fetch(`${catalogOrigin}/api/products`, { cache: "no-store" });
-    if (!response.ok) return fallbackProducts;
+    if (!response.ok) throw new Error(`Catalog request failed with HTTP ${response.status}`);
     const catalogProducts = (await response.json()) as CatalogProduct[];
-    return catalogProducts.length ? catalogProducts.map(toProduct) : fallbackProducts;
-  } catch {
-    return fallbackProducts;
+    return catalogProducts.map(toProduct);
+  } catch (error) {
+    if (process.env.CATALOG_FALLBACK_ENABLED === "true") return fallbackProducts;
+    throw error;
   }
 }
 
@@ -334,10 +335,14 @@ export async function productBySlug(slug: string): Promise<Product | undefined> 
     const response = await fetch(`${catalogOrigin}/api/products/${encodeURIComponent(slug)}`, {
       cache: "no-store",
     });
-    if (!response.ok) return fallbackProducts.find((product) => product.slug === slug);
+    if (response.status === 404) return undefined;
+    if (!response.ok) throw new Error(`Product request failed with HTTP ${response.status}`);
     return toProduct((await response.json()) as CatalogProduct);
-  } catch {
-    return fallbackProducts.find((product) => product.slug === slug);
+  } catch (error) {
+    if (process.env.CATALOG_FALLBACK_ENABLED === "true") {
+      return fallbackProducts.find((product) => product.slug === slug);
+    }
+    throw error;
   }
 }
 

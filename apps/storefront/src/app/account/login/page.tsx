@@ -67,7 +67,9 @@ export default function Login() {
         <Link href="/account/register" className="underline">
           Hesap oluştur
         </Link>
-        <button className="underline">Şifrenizi mi unuttunuz?</button>
+        <Link href="/account/forgot-password" className="underline">
+          Şifrenizi mi unuttunuz?
+        </Link>
       </div>
     </main>
   );

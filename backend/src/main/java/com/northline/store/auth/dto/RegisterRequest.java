@@ -11,7 +11,7 @@ public record RegisterRequest(
   @Size(min = 8, max = 72)
   @Pattern(
     regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$",
-    message = "must contain uppercase, lowercase and a number"
+    message = "büyük harf, küçük harf ve rakam içermelidir"
   )
   String password,
   @NotBlank @Size(max = 100) String firstName,

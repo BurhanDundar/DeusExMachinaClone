@@ -6,14 +6,8 @@ import { Brand } from "@/components/ui/Brand";
 import { useUIStore } from "@/store/ui-store";
 import { MobileMenu } from "./MobileMenu";
 import { AccountAction } from "./AccountAction";
+import { catalogLinks } from "@/data/navigation";
 
-const nav = [
-  { label: "Erkek", slug: "men" },
-  { label: "Kadın", slug: "women" },
-  { label: "Aksesuarlar", slug: "accessories" },
-  { label: "Kültür", slug: "culture" },
-  { label: "İndirim", slug: "sale" },
-];
 export function Header() {
   const s = useUIStore();
   const pathname = usePathname();
@@ -41,12 +35,8 @@ export function Header() {
       <header className="sticky top-0 z-40 h-[88px] border-b border-black/5 bg-paper/95 backdrop-blur-md md:h-[96px]">
         <div className="shell relative flex h-full items-center justify-between">
           <nav className="hidden gap-7 lg:flex" aria-label="Ana menü">
-            {nav.map((item) => (
-              <Link
-                className="focus-ring font-semibold"
-                href={`/collections/${item.slug}`}
-                key={item.slug}
-              >
+            {catalogLinks.map((item) => (
+              <Link className="focus-ring font-semibold" href={item.href} key={item.href}>
                 {item.label} <span aria-hidden>＋</span>
               </Link>
             ))}

@@ -3,16 +3,7 @@
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, UserRound, X } from "lucide-react";
-
-const categories = [
-  { label: "Erkek", slug: "men" },
-  { label: "Kadın", slug: "women" },
-  { label: "Aksesuarlar", slug: "accessories" },
-  { label: "Kültür", slug: "culture" },
-  { label: "İndirim", slug: "sale" },
-];
-const support = ["İletişim", "Beden rehberi", "Kargo", "İade"];
-const about = ["Marka hakkında"];
+import { aboutLinks, catalogLinks, supportLinks, type NavigationLink } from "@/data/navigation";
 
 export function MobileMenu({ open, close }: { open: boolean; close: () => void }) {
   return (
@@ -35,11 +26,11 @@ export function MobileMenu({ open, close }: { open: boolean; close: () => void }
           </button>
           <nav className="mt-12" aria-label="Mobil menü">
             <ul className="space-y-1">
-              {categories.map((category) => (
-                <li key={category.slug}>
+              {catalogLinks.map((category) => (
+                <li key={category.href}>
                   <Link
                     onClick={close}
-                    href={`/collections/${category.slug}`}
+                    href={category.href}
                     className="focus-ring flex items-center gap-1 py-1 text-base font-semibold"
                   >
                     {category.label}
@@ -49,8 +40,8 @@ export function MobileMenu({ open, close }: { open: boolean; close: () => void }
               ))}
             </ul>
             <div className="my-7 border-t border-black/15" />
-            <MenuGroup title="Destek" links={support} close={close} />
-            <MenuGroup title="Hakkımızda" links={about} close={close} />
+            <MenuGroup title="Destek" links={supportLinks} close={close} />
+            <MenuGroup title="Hakkımızda" links={aboutLinks} close={close} />
           </nav>
           <div className="mt-auto flex items-center justify-between border-t border-black/15 pt-5 text-sm">
             <button className="focus-ring border border-black/20 px-3 py-2">TR</button>
@@ -65,19 +56,23 @@ export function MobileMenu({ open, close }: { open: boolean; close: () => void }
   );
 }
 
-function MenuGroup({ title, links, close }: { title: string; links: string[]; close: () => void }) {
+function MenuGroup({
+  title,
+  links,
+  close,
+}: {
+  title: string;
+  links: NavigationLink[];
+  close: () => void;
+}) {
   return (
     <section className="mb-7">
       <h2 className="mb-3 text-sm font-bold">{title}</h2>
       <ul className="space-y-1">
         {links.map((link) => (
-          <li key={link}>
-            <Link
-              onClick={close}
-              href={link === "Marka hakkında" ? "/about" : "#"}
-              className="focus-ring block py-0.5 text-sm"
-            >
-              {link}
+          <li key={link.href}>
+            <Link onClick={close} href={link.href} className="focus-ring block py-0.5 text-sm">
+              {link.label}
             </Link>
           </li>
         ))}

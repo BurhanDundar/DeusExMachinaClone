@@ -29,6 +29,10 @@ cp backend/.env.example backend/.env
 The example values are suitable for local development only. Replace the JWT
 secret and database credentials in every deployed environment.
 
+Production also requires the public company/contact fields in
+`apps/storefront/.env.local`. Password reset e-mails require `RESEND_API_KEY`,
+`EMAIL_FROM` and `STOREFRONT_URL` in the backend environment.
+
 ## Run locally
 
 All commands below start from the repository root.
@@ -79,13 +83,17 @@ For a production-mode frontend check, run `npm run build && npm start`. Do not
 run `next build` while the development server is active because both commands
 use the same `.next` directory.
 
-## Authentication scope
+## Implemented scope
 
-Milestone 1 includes registration, login, logout, refresh-token rotation and
-the authenticated `/api/users/me` profile endpoint. Access tokens are held in
-frontend memory; the opaque refresh token is stored in an HttpOnly cookie and
-only its SHA-256 hash is persisted. Product, cart, inventory, order and payment
-backend flows are intentionally reserved for later milestones.
+The repository includes registration, login, logout, refresh-token rotation,
+single-use password reset, customer profiles and delivery addresses. The
+catalog API and admin panel manage categories, products, variants, stock
+values, ordered Blob galleries and newsletter subscribers. Access tokens are
+held in frontend memory; opaque refresh and password-reset tokens are persisted
+only as SHA-256 hashes.
+
+Checkout payment processing, orders and automatic stock deduction are the
+remaining commerce milestone.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the system boundary and
 [docs/AUTH.md](docs/AUTH.md) for the complete session design.

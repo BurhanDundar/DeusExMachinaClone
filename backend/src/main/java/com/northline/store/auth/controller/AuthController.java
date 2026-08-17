@@ -1,9 +1,12 @@
 package com.northline.store.auth.controller;
 
 import com.northline.store.auth.dto.AuthResponse;
+import com.northline.store.auth.dto.ForgotPasswordRequest;
 import com.northline.store.auth.dto.LoginRequest;
 import com.northline.store.auth.dto.RegisterRequest;
+import com.northline.store.auth.dto.ResetPasswordRequest;
 import com.northline.store.auth.service.AuthService;
+import com.northline.store.auth.service.PasswordResetService;
 import jakarta.validation.Valid;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,15 +21,18 @@ public class AuthController {
 
   public static final String REFRESH_COOKIE = "northline_refresh";
   private final AuthService authService;
+  private final PasswordResetService passwordResetService;
   private final boolean secureCookie;
   private final String sameSite;
 
   public AuthController(
     AuthService authService,
+    PasswordResetService passwordResetService,
     @Value("${app.cookie.secure}") boolean secureCookie,
     @Value("${app.cookie.same-site}") String sameSite
   ) {
     this.authService = authService;
+    this.passwordResetService = passwordResetService;
     this.secureCookie = secureCookie;
     this.sameSite = sameSite;
   }
@@ -56,6 +62,18 @@ public class AuthController {
     return ResponseEntity.noContent()
       .header(HttpHeaders.SET_COOKIE, clearCookie().toString())
       .build();
+  }
+
+  @PostMapping("/password/forgot")
+  ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+    passwordResetService.request(request);
+    return ResponseEntity.noContent().build();
+  }
+
+  @PostMapping("/password/reset")
+  ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+    passwordResetService.reset(request);
+    return ResponseEntity.noContent().build();
   }
 
   private ResponseEntity<AuthResponse> sessionResponse(AuthService.SessionResult result) {

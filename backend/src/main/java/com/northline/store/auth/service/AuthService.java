@@ -60,7 +60,7 @@ public class AuthService {
     if (users.existsByEmailIgnoreCase(email)) {
       throw new ApiException(
         "EMAIL_ALREADY_REGISTERED",
-        "An account already uses this email",
+        "Bu e-posta adresiyle kayıtlı bir hesap zaten var.",
         HttpStatus.CONFLICT
       );
     }
@@ -74,7 +74,7 @@ public class AuthService {
     } catch (DataIntegrityViolationException exception) {
       throw new ApiException(
         "EMAIL_ALREADY_REGISTERED",
-        "An account already uses this email",
+        "Bu e-posta adresiyle kayıtlı bir hesap zaten var.",
         HttpStatus.CONFLICT
       );
     }
@@ -92,7 +92,7 @@ public class AuthService {
       .orElseThrow(() ->
         new ApiException(
           "INVALID_CREDENTIALS",
-          "Email or password is incorrect",
+          "E-posta veya şifre hatalı.",
           HttpStatus.UNAUTHORIZED
         )
       );
@@ -104,23 +104,19 @@ public class AuthService {
     if (rawToken == null || rawToken.isBlank()) {
       throw new ApiException(
         "INVALID_REFRESH_TOKEN",
-        "The session could not be refreshed",
+        "Oturum yenilenemedi.",
         HttpStatus.UNAUTHORIZED
       );
     }
     var stored = refreshTokens
       .findByTokenHash(hash(rawToken))
       .orElseThrow(() ->
-        new ApiException(
-          "INVALID_REFRESH_TOKEN",
-          "The session could not be refreshed",
-          HttpStatus.UNAUTHORIZED
-        )
+        new ApiException("INVALID_REFRESH_TOKEN", "Oturum yenilenemedi.", HttpStatus.UNAUTHORIZED)
       );
     if (!stored.isUsable(Instant.now()) || !stored.getUser().isEnabled()) {
       throw new ApiException(
         "INVALID_REFRESH_TOKEN",
-        "The session could not be refreshed",
+        "Oturum yenilenemedi.",
         HttpStatus.UNAUTHORIZED
       );
     }

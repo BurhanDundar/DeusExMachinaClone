@@ -10,9 +10,9 @@ runtime code or database entities.
 browser -> Next.js storefront (:3000) -> Spring Boot API (:8080) -> PostgreSQL (:5432)
 ```
 
-Milestone 1 implements the foundation and authentication only. Product,
-variant, cart, inventory, order, payment, and email packages are intentionally
-left for later milestones.
+The implemented backend owns authentication, customer addresses, the product
+catalog, product variants, admin management and newsletter subscriptions.
+Vercel Blob stores public product media; PostgreSQL stores its ordered URLs.
 
 ## Communication
 
@@ -24,10 +24,10 @@ left for later milestones.
 
 ## Domain model
 
-The first milestone contains `User` and `RefreshToken`. Future domains will be
-feature-oriented packages: `product`, `cart`, `inventory`, `order`, `payment`,
-and `email`. A purchasable line will eventually reference `ProductVariant`, not
-the current frontend product/size pair.
+Current domains include `User`, `UserAddress`, `RefreshToken`,
+`PasswordResetToken`, `Category`, `Product`, `ProductImage`, `ProductVariant`
+and `NewsletterSubscriber`. A future purchasable line will reference
+`ProductVariant`, not a frontend-only product/size pair.
 
 ## Authentication lifecycle
 
@@ -42,8 +42,8 @@ the current frontend product/size pair.
 
 ## Future cart lifecycle
 
-The current Zustand cart remains the guest cart during Milestone 1. After login,
-Milestone 2+ will merge lines by variant ID into the server cart, cap quantities
+The current Zustand cart remains the guest cart. After login, the order milestone
+will merge lines by variant ID into the server cart, cap quantities
 to available stock, then clear successfully merged guest lines. A cart never
 reserves inventory.
 

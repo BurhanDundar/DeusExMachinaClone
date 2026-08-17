@@ -32,14 +32,14 @@ public class GlobalExceptionHandler {
       .getFieldErrors()
       .forEach(error -> fields.putIfAbsent(error.getField(), error.getDefaultMessage()));
     return ResponseEntity.badRequest().body(
-      new ApiError("VALIDATION_ERROR", "One or more fields are invalid", fields, Instant.now())
+      new ApiError("VALIDATION_ERROR", "Bir veya daha fazla alan geçersiz.", fields, Instant.now())
     );
   }
 
   @ExceptionHandler(AuthenticationException.class)
   ResponseEntity<ApiError> handleAuthentication(AuthenticationException exception) {
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-      ApiError.of("INVALID_CREDENTIALS", "Email or password is incorrect")
+      ApiError.of("INVALID_CREDENTIALS", "E-posta veya şifre hatalı.")
     );
   }
 
@@ -47,7 +47,7 @@ public class GlobalExceptionHandler {
   ResponseEntity<ApiError> handleUnexpected(Exception exception) {
     log.error("Unhandled API error", exception);
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-      ApiError.of("INTERNAL_ERROR", "An unexpected error occurred")
+      ApiError.of("INTERNAL_ERROR", "Beklenmeyen bir hata oluştu.")
     );
   }
 }

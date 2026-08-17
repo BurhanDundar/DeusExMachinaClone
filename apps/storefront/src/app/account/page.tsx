@@ -2,10 +2,11 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Plus, X } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { useAuth } from "@/auth/AuthProvider";
 import { ApiError } from "@/lib/api";
+import { AddressManager } from "@/components/account/AddressManager";
 
 type AccountSection = "overview" | "details" | "addresses" | "orders";
 
@@ -68,7 +69,12 @@ export default function AccountPage() {
                   onSignedOut={() => router.replace("/account/login")}
                 />
               )}
-              {section === "addresses" && <Addresses />}
+              {section === "addresses" && (
+                <AddressManager
+                  authenticatedFetch={authenticatedFetch}
+                  defaultNames={{ firstName: user.firstName, lastName: user.lastName }}
+                />
+              )}
               {section === "orders" && <Orders />}
             </div>
           </section>
@@ -90,11 +96,9 @@ function Overview({ firstName }: { firstName: string }) {
       <div className="my-8 border-t border-black/15" />
       <section>
         <h2 className="text-xl font-bold">Teslimat adresi</h2>
-        <p className="mt-5 font-semibold">Türkiye</p>
-        <button className="focus-ring mt-4 flex items-center gap-2 font-semibold">
-          <ArrowRight size={16} />
-          Adresi düzenle
-        </button>
+        <p className="mt-5 font-semibold">
+          Kayıtlı adreslerinizi “Adresler” bölümünden yönetebilirsiniz.
+        </p>
       </section>
     </>
   );
@@ -188,35 +192,6 @@ function Details({
           {saving ? "Kaydediliyor…" : "Şifreyi değiştir"}
         </button>
       </form>
-    </>
-  );
-}
-
-function Addresses() {
-  return (
-    <>
-      <h1 className="display text-4xl">Adresler</h1>
-      <section className="mt-10">
-        <div className="flex items-start justify-between gap-5">
-          <div>
-            <h2 className="text-xl font-bold">Varsayılan adres</h2>
-            <p className="mt-5 font-semibold">Türkiye</p>
-            <button className="focus-ring mt-4 flex items-center gap-2 font-semibold">
-              <ArrowRight size={16} />
-              Adresi düzenle
-            </button>
-          </div>
-          <button className="focus-ring mt-16 flex items-center gap-1 font-semibold">
-            <X size={15} />
-            Kaldır
-          </button>
-        </div>
-      </section>
-      <div className="my-10 border-t border-black/15" />
-      <button className="focus-ring flex items-center gap-2 font-semibold">
-        <Plus size={16} />
-        Yeni adres ekle
-      </button>
     </>
   );
 }

@@ -272,7 +272,7 @@ export default function CheckoutPage() {
                 required
               />
               Okudum ve kabul ediyorum:{" "}
-              <a className="underline" href="#terms">
+              <a className="underline" href="/distance-sales">
                 Hizmet Koşulları.
               </a>
             </label>
@@ -302,11 +302,9 @@ export default function CheckoutPage() {
               </p>
             )}
             <div className="mt-10 flex gap-5 border-t border-black/15 pt-4 text-sm underline">
-              <a href="#refund">İade politikası</a>
-              <a href="#privacy">Gizlilik politikası</a>
-              <a id="terms" href="#terms">
-                Hizmet koşulları
-              </a>
+              <a href="/returns">İade politikası</a>
+              <a href="/privacy">Gizlilik politikası</a>
+              <a href="/terms">Hizmet koşulları</a>
             </div>
           </section>
         </div>

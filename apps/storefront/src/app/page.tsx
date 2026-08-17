@@ -20,21 +20,33 @@ export default async function Home() {
         kicker="Sonbahar / Kış 26"
         title="Uzun yollar için tasarlandı."
       />
-      <ProductSection title="Yeni Gelenler" products={featuredProducts} />
+      <ProductSection
+        title="Yeni Gelenler"
+        products={featuredProducts}
+        href="/collections/new-arrivals"
+      />
       <Campaign
         image="/campaign/campaign-wide.jpg"
         kicker="Hareket çalışmaları / 01"
         title="Şehir sınırları yalnızca bir öneridir."
         portrait
       />
-      <ProductSection title="Atölye Giyimi" products={clothing} />
+      <ProductSection title="Atölye Giyimi" products={clothing} href="/collections/clothing" />
       <section className="shell">
         <div className="grid gap-2 md:grid-cols-2">
-          <CampaignTile image="/campaign/campaign-portrait.jpg" title="Erkek" slug="men" />
-          <CampaignTile image="/campaign/campaign-wide.jpg" title="Kadın" slug="women" />
+          <CampaignTile image="/campaign/campaign-portrait.jpg" title="Giyim" slug="clothing" />
+          <CampaignTile
+            image="/campaign/campaign-wide.jpg"
+            title="Aksesuarlar"
+            slug="accessories"
+          />
         </div>
       </section>
-      <ProductSection title="Aksesuarlar ve Defterler" products={[...accessories, ...notebooks]} />
+      <ProductSection
+        title="Aksesuarlar ve Defterler"
+        products={[...accessories, ...notebooks]}
+        href="/collections/accessories-notebooks"
+      />
       <EditorialGrid />
       <Footer />
     </main>

@@ -29,7 +29,7 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     objectMapper.writeValue(
       response.getOutputStream(),
-      ApiError.of("AUTHENTICATION_REQUIRED", "Authentication is required")
+      ApiError.of("AUTHENTICATION_REQUIRED", "Bu işlem için giriş yapmalısınız.")
     );
   }
 }

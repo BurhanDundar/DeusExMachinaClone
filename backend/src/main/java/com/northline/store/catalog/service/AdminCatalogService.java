@@ -119,7 +119,7 @@ public class AdminCatalogService {
       if (image == null) {
         throw new ApiException(
           "PRODUCT_IMAGE_NOT_FOUND",
-          "Product image was not found",
+          "Ürün görseli bulunamadı.",
           HttpStatus.BAD_REQUEST
         );
       }
@@ -151,7 +151,7 @@ public class AdminCatalogService {
       if (variant == null) {
         throw new ApiException(
           "PRODUCT_VARIANT_NOT_FOUND",
-          "Product variant was not found",
+          "Ürün seçeneği bulunamadı.",
           HttpStatus.BAD_REQUEST
         );
       }
@@ -203,7 +203,7 @@ public class AdminCatalogService {
     return categories
       .findById(id)
       .orElseThrow(() ->
-        new ApiException("CATEGORY_NOT_FOUND", "Category was not found", HttpStatus.NOT_FOUND)
+        new ApiException("CATEGORY_NOT_FOUND", "Kategori bulunamadı.", HttpStatus.NOT_FOUND)
       );
   }
 
@@ -211,7 +211,7 @@ public class AdminCatalogService {
     return products
       .findById(id)
       .orElseThrow(() ->
-        new ApiException("PRODUCT_NOT_FOUND", "Product was not found", HttpStatus.NOT_FOUND)
+        new ApiException("PRODUCT_NOT_FOUND", "Ürün bulunamadı.", HttpStatus.NOT_FOUND)
       );
   }
 

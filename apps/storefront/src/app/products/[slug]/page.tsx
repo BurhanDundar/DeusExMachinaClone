@@ -41,13 +41,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </details>
           <details className="border-y border-black py-5">
             <summary className="cursor-pointer font-bold">Kargo ve iade</summary>
-            <p className="pt-4 text-black/60">30 gün içinde ücretsiz iade imkânı.</p>
+            <p className="pt-4 text-black/60">
+              Teslimden itibaren 14 gün içinde iade talebi oluşturabilirsiniz.
+            </p>
           </details>
         </div>
       </div>
       <ProductSection
         title="Benzer ürünler"
         products={products.filter((product) => product.slug !== p.slug).slice(0, 8)}
+        href={`/collections/${p.categorySlug === "giyim" ? "clothing" : p.categorySlug === "aksesuar" ? "accessories" : p.categorySlug === "defterler" ? "culture" : p.categorySlug}`}
       />
       <Footer />
     </main>

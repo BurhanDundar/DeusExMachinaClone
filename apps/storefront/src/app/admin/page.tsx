@@ -2,8 +2,20 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { upload } from "@vercel/blob/client";
-import { Archive, Check, ImageIcon, Pencil, Plus, Save, Upload, X } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Archive,
+  Check,
+  ImageIcon,
+  Pencil,
+  Plus,
+  Save,
+  Upload,
+  X,
+} from "lucide-react";
 import { useAuth } from "@/auth/AuthProvider";
 import { ApiError } from "@/lib/api";
 import { formatPrice } from "@/lib/currency";
@@ -56,6 +68,14 @@ type Notification = {
   text: string;
 };
 
+type NewsletterSubscriber = {
+  id: string;
+  email: string;
+  active: boolean;
+  consentAt: string;
+  subscribedAt: string;
+};
+
 const statuses: ProductForm["status"][] = ["DRAFT", "ACTIVE", "ARCHIVED"];
 const statusLabels: Record<ProductForm["status"], string> = {
   DRAFT: "Taslak",
@@ -106,9 +126,10 @@ function formFromProduct(product: AdminProduct): ProductForm {
 export default function AdminPage() {
   const router = useRouter();
   const { user, accessToken, loading, authenticatedFetch } = useAuth();
-  const [tab, setTab] = useState<"products" | "categories">("products");
+  const [tab, setTab] = useState<"products" | "categories" | "newsletter">("products");
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
+  const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [productForm, setProductForm] = useState<ProductForm | null>(null);
   const [categoryForm, setCategoryForm] = useState<AdminCategory | null>(null);
@@ -137,11 +158,13 @@ export default function AdminPage() {
     Promise.all([
       latestAuthenticatedFetch.current<AdminProduct[]>("/api/admin/catalog/products"),
       latestAuthenticatedFetch.current<AdminCategory[]>("/api/admin/catalog/categories"),
+      latestAuthenticatedFetch.current<NewsletterSubscriber[]>("/api/admin/newsletter/subscribers"),
     ])
-      .then(([nextProducts, nextCategories]) => {
+      .then(([nextProducts, nextCategories, nextSubscribers]) => {
         if (!active) return;
         setProducts(nextProducts);
         setCategories(nextCategories);
+        setSubscribers(nextSubscribers);
       })
       .catch((error) => {
         if (!active) return;
@@ -179,12 +202,27 @@ export default function AdminPage() {
   }
 
   async function reload() {
-    const [nextProducts, nextCategories] = await Promise.all([
+    const [nextProducts, nextCategories, nextSubscribers] = await Promise.all([
       authenticatedFetch<AdminProduct[]>("/api/admin/catalog/products"),
       authenticatedFetch<AdminCategory[]>("/api/admin/catalog/categories"),
+      authenticatedFetch<NewsletterSubscriber[]>("/api/admin/newsletter/subscribers"),
     ]);
     setProducts(nextProducts);
     setCategories(nextCategories);
+    setSubscribers(nextSubscribers);
+  }
+
+  async function deleteStoredImages(urls: string[]) {
+    if (!urls.length || !accessToken) return;
+    const response = await fetch("/api/admin/uploads/delete", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ urls }),
+    });
+    if (!response.ok) throw new Error("Kullanılmayan Blob görselleri temizlenemedi.");
   }
 
   async function saveProduct(event: FormEvent<HTMLFormElement>) {
@@ -235,7 +273,19 @@ export default function AdminPage() {
       setSelectedId(savedProduct.id);
       setProductForm(formFromProduct(savedProduct));
       router.refresh();
-      setNotification({ tone: "success", text: "Ürün başarıyla kaydedildi." });
+      const retainedUrls = new Set(body.images.map((image) => image.url));
+      const removedUrls = (selectedProduct?.images ?? [])
+        .map((image) => image.url)
+        .filter((url) => !retainedUrls.has(url));
+      try {
+        await deleteStoredImages(removedUrls);
+        setNotification({ tone: "success", text: "Ürün başarıyla kaydedildi." });
+      } catch {
+        setNotification({
+          tone: "error",
+          text: "Ürün kaydedildi ancak eski Blob görsellerinden bazıları temizlenemedi.",
+        });
+      }
     } catch (error) {
       setNotification({
         tone: "error",
@@ -253,6 +303,7 @@ export default function AdminPage() {
 
   async function archiveProduct() {
     if (!selectedId) return;
+    if (!window.confirm("Bu ürünü arşivlemek istediğinize emin misiniz?")) return;
     try {
       await authenticatedFetch(`/api/admin/catalog/products/${selectedId}`, { method: "DELETE" });
       await reload();
@@ -310,13 +361,13 @@ export default function AdminPage() {
           </p>
         </header>
         <nav className="mt-6 flex gap-2" aria-label="Yönetim bölümleri">
-          {(["products", "categories"] as const).map((item) => (
+          {(["products", "categories", "newsletter"] as const).map((item) => (
             <button
               key={item}
               onClick={() => setTab(item)}
               className={`focus-ring px-4 py-2 font-bold ${tab === item ? "bg-black text-white" : "border border-black"}`}
             >
-              {item === "products" ? "Ürünler" : "Kategoriler"}
+              {item === "products" ? "Ürünler" : item === "categories" ? "Kategoriler" : "Bülten"}
             </button>
           ))}
         </nav>
@@ -352,12 +403,14 @@ export default function AdminPage() {
                     }}
                     className={`focus-ring group overflow-hidden border text-left transition-colors ${selectedId === product.id ? "border-black bg-fog" : "border-black/20 bg-white hover:border-black"}`}
                   >
-                    <span className="block aspect-[4/3] overflow-hidden bg-fog">
+                    <span className="relative block aspect-[4/3] overflow-hidden bg-fog">
                       {product.images[0]?.url ? (
-                        <img
+                        <Image
                           src={product.images[0].url}
                           alt={product.images[0].altText || product.name}
-                          className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
+                          fill
+                          sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 28vw"
+                          className="object-cover transition-transform duration-200 group-hover:scale-[1.03]"
                         />
                       ) : (
                         <ImageIcon
@@ -396,7 +449,7 @@ export default function AdminPage() {
               />
             )}
           </div>
-        ) : (
+        ) : tab === "categories" ? (
           <div className="mt-8 grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
             <section>
               <button
@@ -439,6 +492,50 @@ export default function AdminPage() {
               />
             )}
           </div>
+        ) : (
+          <section className="mt-8 max-w-4xl">
+            <div className="mb-5 flex items-end justify-between gap-5 border-b border-black/20 pb-4">
+              <div>
+                <h2 className="display text-3xl">Bülten aboneleri</h2>
+                <p className="mt-1 text-sm text-black/65">
+                  Pazarlama izni vererek kaydolan e-posta adresleri.
+                </p>
+              </div>
+              <span className="font-bold">
+                {subscribers.filter((subscriber) => subscriber.active).length} aktif
+              </span>
+            </div>
+            {subscribers.length ? (
+              <div className="overflow-x-auto border border-black/20 bg-white">
+                <table className="w-full min-w-[620px] text-left">
+                  <thead className="border-b border-black/20 bg-fog">
+                    <tr>
+                      <th className="p-4">E-posta</th>
+                      <th className="p-4">Durum</th>
+                      <th className="p-4">Kayıt tarihi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-black/10">
+                    {subscribers.map((subscriber) => (
+                      <tr key={subscriber.id}>
+                        <td className="p-4 font-semibold">{subscriber.email}</td>
+                        <td className="p-4">{subscriber.active ? "Aktif" : "Ayrılmış"}</td>
+                        <td className="p-4">
+                          {new Intl.DateTimeFormat("tr-TR", {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                            timeZone: "Europe/Istanbul",
+                          }).format(new Date(subscriber.subscribedAt))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="border-y border-black/15 py-10">Henüz bülten abonesi yok.</p>
+            )}
+          </section>
         )}
       </div>
     </main>
@@ -585,6 +682,14 @@ function ProductEditor({
       setUploading(false);
       setUploadProgress(null);
     }
+  }
+
+  function moveImage(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (target < 0 || target >= form.images.length) return;
+    const images = [...form.images];
+    [images[index], images[target]] = [images[target], images[index]];
+    setForm({ ...form, images });
   }
 
   return (
@@ -769,6 +874,24 @@ function ProductEditor({
                   className={`${input} mt-2`}
                 />
               </label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={index === 0}
+                  onClick={() => moveImage(index, -1)}
+                  className="focus-ring flex items-center gap-1 border border-black/20 px-3 py-2 font-bold disabled:opacity-35"
+                >
+                  <ArrowUp size={15} /> Öne taşı
+                </button>
+                <button
+                  type="button"
+                  disabled={index === form.images.length - 1}
+                  onClick={() => moveImage(index, 1)}
+                  className="focus-ring flex items-center gap-1 border border-black/20 px-3 py-2 font-bold disabled:opacity-35"
+                >
+                  <ArrowDown size={15} /> Arkaya taşı
+                </button>
+              </div>
               {form.images.length > 1 && (
                 <button
                   type="button"
@@ -951,7 +1074,7 @@ function ImagePicker({
   };
 
   return (
-    <div className="aspect-square overflow-hidden bg-fog">
+    <div className="relative aspect-square overflow-hidden bg-fog">
       <button
         type="button"
         disabled={disabled}
@@ -960,10 +1083,12 @@ function ImagePicker({
         aria-label={image.url ? "Görseli değiştir" : "Görsel seç"}
       >
         {image.url ? (
-          <img
+          <Image
             src={image.url}
             alt={image.altText || productName || "Ürün görseli"}
-            className="h-full w-full object-cover"
+            fill
+            sizes="144px"
+            className="object-cover"
           />
         ) : (
           <span className="flex h-full items-center justify-center px-4 text-center text-sm font-semibold text-black/55">

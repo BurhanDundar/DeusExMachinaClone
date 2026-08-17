@@ -46,7 +46,7 @@ public class CatalogService {
       .findBySlugAndStatus(slug, ProductStatus.ACTIVE)
       .map(ProductResponse::from)
       .orElseThrow(() ->
-        new ApiException("PRODUCT_NOT_FOUND", "Product was not found", HttpStatus.NOT_FOUND)
+        new ApiException("PRODUCT_NOT_FOUND", "Ürün bulunamadı.", HttpStatus.NOT_FOUND)
       );
   }
 }
