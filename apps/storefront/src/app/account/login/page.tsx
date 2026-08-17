@@ -21,7 +21,7 @@ export default function Login() {
       await login(String(data.get("email")), String(data.get("password")));
       router.replace("/account");
     } catch (cause) {
-      setError(cause instanceof ApiError ? cause.message : "Unable to sign in right now");
+      setError(cause instanceof ApiError ? cause.message : "Şu anda giriş yapılamıyor.");
     } finally {
       setSubmitting(false);
     }
@@ -29,10 +29,10 @@ export default function Login() {
 
   return (
     <main className="mx-auto min-h-[70vh] max-w-lg px-5 py-20">
-      <h1 className="display text-5xl">Account login</h1>
+      <h1 className="display text-5xl">Hesabınıza giriş yapın</h1>
       <form className="mt-10 space-y-4" onSubmit={submit}>
         <label className="block">
-          Email
+          E-posta
           <input
             name="email"
             type="email"
@@ -42,7 +42,7 @@ export default function Login() {
           />
         </label>
         <label className="block">
-          Password
+          Şifre
           <input
             name="password"
             type="password"
@@ -60,14 +60,14 @@ export default function Login() {
           disabled={submitting}
           className="w-full bg-black p-4 font-bold text-white disabled:opacity-50"
         >
-          {submitting ? "Signing in…" : "Sign in"}
+          {submitting ? "Giriş yapılıyor…" : "Giriş yap"}
         </button>
       </form>
       <div className="mt-6 flex justify-between text-sm">
         <Link href="/account/register" className="underline">
-          Create account
+          Hesap oluştur
         </Link>
-        <button className="underline">Forgot password?</button>
+        <button className="underline">Şifrenizi mi unuttunuz?</button>
       </div>
     </main>
   );

@@ -10,10 +10,10 @@ import { ApiError } from "@/lib/api";
 type AccountSection = "overview" | "details" | "addresses" | "orders";
 
 const navigation: { id: AccountSection; label: string }[] = [
-  { id: "overview", label: "Overview" },
-  { id: "details", label: "Account Details" },
-  { id: "addresses", label: "Addresses" },
-  { id: "orders", label: "Order History" },
+  { id: "overview", label: "Genel bakış" },
+  { id: "details", label: "Hesap bilgileri" },
+  { id: "addresses", label: "Adresler" },
+  { id: "orders", label: "Sipariş geçmişi" },
 ];
 
 export default function AccountPage() {
@@ -24,14 +24,14 @@ export default function AccountPage() {
   useEffect(() => {
     if (!loading && !user) router.replace("/account/login");
   }, [loading, user, router]);
-  if (loading || !user) return <main className="min-h-[60vh] px-5 py-20">Loading account…</main>;
+  if (loading || !user) return <main className="min-h-[60vh] px-5 py-20">Hesap yükleniyor…</main>;
 
   return (
     <>
       <main className="min-h-[620px] bg-white">
         <div className="grid lg:grid-cols-[25%_75%]">
           <aside className="px-5 py-8 sm:px-8 lg:pt-28">
-            <nav className="flex flex-col items-start gap-0" aria-label="Account navigation">
+            <nav className="flex flex-col items-start gap-0" aria-label="Hesap menüsü">
               {navigation.map((item) => (
                 <button
                   key={item.id}
@@ -51,7 +51,7 @@ export default function AccountPage() {
                 }}
                 className="focus-ring py-1 text-left font-semibold opacity-75 hover:opacity-100"
               >
-                Logout
+                Çıkış yap
               </button>
             </nav>
           </aside>
@@ -82,18 +82,18 @@ export default function AccountPage() {
 function Overview({ firstName }: { firstName: string }) {
   return (
     <>
-      <h1 className="display text-4xl">Welcome, {firstName}</h1>
+      <h1 className="display text-4xl">Hoş geldiniz, {firstName}</h1>
       <section className="mt-10">
-        <h2 className="text-xl font-bold">Recent Orders</h2>
-        <p className="mt-5 font-semibold">You haven&apos;t placed any orders yet.</p>
+        <h2 className="text-xl font-bold">Son siparişler</h2>
+        <p className="mt-5 font-semibold">Henüz sipariş vermediniz.</p>
       </section>
       <div className="my-8 border-t border-black/15" />
       <section>
-        <h2 className="text-xl font-bold">Shipping Address</h2>
+        <h2 className="text-xl font-bold">Teslimat adresi</h2>
         <p className="mt-5 font-semibold">Türkiye</p>
         <button className="focus-ring mt-4 flex items-center gap-2 font-semibold">
           <ArrowRight size={16} />
-          Edit Address
+          Adresi düzenle
         </button>
       </section>
     </>
@@ -140,7 +140,7 @@ function Details({
 
   return (
     <>
-      <h1 className="display text-4xl">Account</h1>
+      <h1 className="display text-4xl">Hesap bilgileri</h1>
       <div className="mt-10 font-semibold">
         <p>
           {firstName} {lastName}
@@ -195,27 +195,27 @@ function Details({
 function Addresses() {
   return (
     <>
-      <h1 className="display text-4xl">Addresses</h1>
+      <h1 className="display text-4xl">Adresler</h1>
       <section className="mt-10">
         <div className="flex items-start justify-between gap-5">
           <div>
-            <h2 className="text-xl font-bold">Default</h2>
+            <h2 className="text-xl font-bold">Varsayılan adres</h2>
             <p className="mt-5 font-semibold">Türkiye</p>
             <button className="focus-ring mt-4 flex items-center gap-2 font-semibold">
               <ArrowRight size={16} />
-              Edit Address
+              Adresi düzenle
             </button>
           </div>
           <button className="focus-ring mt-16 flex items-center gap-1 font-semibold">
             <X size={15} />
-            Remove
+            Kaldır
           </button>
         </div>
       </section>
       <div className="my-10 border-t border-black/15" />
       <button className="focus-ring flex items-center gap-2 font-semibold">
         <Plus size={16} />
-        Add New Address
+        Yeni adres ekle
       </button>
     </>
   );
@@ -224,8 +224,8 @@ function Addresses() {
 function Orders() {
   return (
     <>
-      <h1 className="display text-4xl">Order History</h1>
-      <p className="mt-10 font-semibold">You haven&apos;t placed any orders yet.</p>
+      <h1 className="display text-4xl">Sipariş geçmişi</h1>
+      <p className="mt-10 font-semibold">Henüz sipariş vermediniz.</p>
       <div className="mt-12 border-t border-black/15" />
     </>
   );

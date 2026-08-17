@@ -30,7 +30,7 @@ export default function AboutPage() {
             <figure className="relative aspect-[4/5] overflow-hidden bg-fog">
               <Image
                 src="/campaign/campaign-portrait.jpg"
-                alt="Northline community"
+                alt="Northline topluluğu"
                 fill
                 className="object-cover"
                 sizes="(max-width: 1023px) 45vw, 320px"
@@ -39,7 +39,7 @@ export default function AboutPage() {
             <figure className="relative aspect-[4/5] overflow-hidden bg-fog">
               <Image
                 src="/campaign/campaign-portrait.png"
-                alt="Northline style"
+                alt="Northline tarzı"
                 fill
                 className="object-cover"
                 sizes="(max-width: 1023px) 45vw, 320px"
@@ -51,7 +51,7 @@ export default function AboutPage() {
           <figure className="relative aspect-[16/10] overflow-hidden bg-fog">
             <Image
               src="/campaign/campaign-wide.jpg"
-              alt="Northline on the road"
+              alt="Northline yolda"
               fill
               className="object-cover"
               sizes="(max-width: 1023px) 100vw, 650px"

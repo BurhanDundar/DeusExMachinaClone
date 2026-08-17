@@ -41,20 +41,20 @@ export default function CheckoutPage() {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setNotice(
-      "Online payments are not connected yet. Your card details have not been sent or saved."
+      "Çevrimiçi ödeme sistemi henüz bağlı değil. Kart bilgileriniz gönderilmedi veya kaydedilmedi."
     );
   }
 
   if (!items.length)
     return (
       <main className="mx-auto max-w-xl px-5 py-20">
-        <h1 className="display text-5xl">Your bag is empty</h1>
-        <p className="mt-4 text-black/60">Add something to your bag before checking out.</p>
+        <h1 className="display text-5xl">Sepetiniz boş</h1>
+        <p className="mt-4 text-black/60">Ödemeye geçmeden önce sepetinize ürün ekleyin.</p>
         <Link
           className="focus-ring mt-8 inline-block bg-black px-6 py-4 font-bold text-white"
           href="/"
         >
-          Continue shopping
+          Alışverişe devam et
         </Link>
       </main>
     );
@@ -67,7 +67,7 @@ export default function CheckoutPage() {
       >
         <div className="space-y-9">
           <section>
-            <p className="mb-4 text-center text-sm text-black/55">Express checkout</p>
+            <p className="mb-4 text-center text-sm text-black/55">Hızlı ödeme</p>
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
@@ -86,23 +86,23 @@ export default function CheckoutPage() {
               </button>
             </div>
             <div className="my-7 flex items-center gap-4 text-xs text-black/55 before:h-px before:flex-1 before:bg-black/15 after:h-px after:flex-1 after:bg-black/15">
-              OR
+              VEYA
             </div>
           </section>
           <section>
             <div className="mb-3 flex items-center justify-between">
-              <h1 className="text-xl font-bold">Contact</h1>
+              <h1 className="text-xl font-bold">İletişim</h1>
               <Link className="underline" href="/account/login">
-                Sign in
+                Giriş yap
               </Link>
             </div>
-            <Field label="Email">
+            <Field label="E-posta">
               <div className="relative">
                 <input
                   className={inputClass}
                   type="email"
                   autoComplete="email"
-                  placeholder="Email"
+                  placeholder="E-posta"
                   required
                 />
                 <CircleHelp className="absolute right-3 top-5 text-black/55" size={16} />
@@ -114,65 +114,60 @@ export default function CheckoutPage() {
                 type="checkbox"
               />
               <Check className="-ml-[22px] pointer-events-none text-white" size={14} />
-              <span className="ml-1">Email me with news and offers</span>
+              <span className="ml-1">Haber ve kampanyaları e-postayla gönder</span>
             </label>
           </section>
           <section>
-            <h2 className="mb-3 text-xl font-bold">Delivery</h2>
+            <h2 className="mb-3 text-xl font-bold">Teslimat</h2>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="First name">
-                <input
-                  className={inputClass}
-                  autoComplete="given-name"
-                  placeholder="First name"
-                  required
-                />
+              <Field label="Ad">
+                <input className={inputClass} autoComplete="given-name" placeholder="Ad" required />
               </Field>
-              <Field label="Last name">
+              <Field label="Soyad">
                 <input
                   className={inputClass}
                   autoComplete="family-name"
-                  placeholder="Last name"
+                  placeholder="Soyad"
                   required
                 />
               </Field>
             </div>
-            <Field label="Address" className="mt-3">
+            <Field label="Adres" className="mt-3">
               <div className="relative">
                 <input
                   className={inputClass}
                   autoComplete="street-address"
-                  placeholder="Address"
+                  placeholder="Adres"
                   required
                 />
                 <Search className="absolute right-3 top-5 text-black/55" size={16} />
               </div>
             </Field>
             <div className="mt-3 grid grid-cols-2 gap-3">
-              <Field label="Postal code">
+              <Field label="Posta kodu">
                 <input
                   className={inputClass}
                   autoComplete="postal-code"
-                  placeholder="Postal code"
+                  placeholder="Posta kodu"
                   required
                 />
               </Field>
-              <Field label="City">
+              <Field label="Şehir">
                 <input
                   className={inputClass}
                   autoComplete="address-level2"
-                  placeholder="City"
+                  placeholder="Şehir"
                   required
                 />
               </Field>
             </div>
-            <Field label="Phone" className="mt-3">
+            <Field label="Telefon" className="mt-3">
               <div className="relative">
                 <input
                   className={inputClass}
                   type="tel"
                   autoComplete="tel"
-                  placeholder="Phone"
+                  placeholder="Telefon"
                   required
                 />
                 <CircleHelp className="absolute right-3 top-5 text-black/55" size={16} />
@@ -180,14 +175,14 @@ export default function CheckoutPage() {
             </Field>
           </section>
           <section>
-            <h2 className="text-xl font-bold">Shipping method</h2>
+            <h2 className="text-xl font-bold">Kargo yöntemi</h2>
             <div className="mt-3 rounded-xl bg-black/[.045] px-5 py-4 text-center text-sm text-black/55">
-              Enter your shipping address to view available shipping methods.
+              Kullanılabilir kargo yöntemlerini görmek için teslimat adresinizi girin.
             </div>
           </section>
           <section>
-            <h2 className="text-xl font-bold">Payment</h2>
-            <p className="mt-1 text-sm text-black/55">All transactions are secure and encrypted.</p>
+            <h2 className="text-xl font-bold">Ödeme</h2>
+            <p className="mt-1 text-sm text-black/55">Tüm işlemler güvenli ve şifrelidir.</p>
             <div className="mt-3 overflow-hidden rounded-xl border border-black">
               <label className="flex h-13 items-center justify-between border-b border-black px-4 py-3">
                 <span className="flex items-center gap-3 font-semibold">
@@ -197,7 +192,7 @@ export default function CheckoutPage() {
                     type="radio"
                     name="payment"
                   />
-                  Credit card
+                  Kredi veya banka kartı
                 </span>
                 <span className="flex gap-1 text-[10px] font-bold">
                   <i className="rounded bg-blue-700 px-1 py-0.5 not-italic text-white">VISA</i>
@@ -206,34 +201,38 @@ export default function CheckoutPage() {
               </label>
               {payment === "card" && (
                 <div className="bg-black/[.035] p-4">
-                  <Field label="Card number">
+                  <Field label="Kart numarası">
                     <div className="relative">
-                      <input className={inputClass} placeholder="Card number" inputMode="numeric" />
+                      <input
+                        className={inputClass}
+                        placeholder="Kart numarası"
+                        inputMode="numeric"
+                      />
                       <LockKeyhole className="absolute right-3 top-5 text-black/55" size={16} />
                     </div>
                   </Field>
                   <div className="mt-3 grid grid-cols-2 gap-3">
-                    <Field label="Expiry date">
+                    <Field label="Son kullanma tarihi">
                       <input
                         className={inputClass}
-                        placeholder="Expiration date (MM / YY)"
+                        placeholder="Son kullanma tarihi (AA / YY)"
                         inputMode="numeric"
                       />
                     </Field>
-                    <Field label="Security code">
+                    <Field label="Güvenlik kodu">
                       <input
                         className={inputClass}
-                        placeholder="Security code"
+                        placeholder="Güvenlik kodu"
                         inputMode="numeric"
                       />
                     </Field>
                   </div>
-                  <Field label="Name on card" className="mt-3">
-                    <input className={inputClass} placeholder="Name on card" />
+                  <Field label="Kart üzerindeki ad" className="mt-3">
+                    <input className={inputClass} placeholder="Kart üzerindeki ad" />
                   </Field>
                   <label className="mt-4 flex items-center gap-2 text-sm">
                     <input type="checkbox" defaultChecked />
-                    Use shipping address as billing address
+                    Teslimat adresini fatura adresi olarak kullan
                   </label>
                 </div>
               )}
@@ -257,7 +256,7 @@ export default function CheckoutPage() {
                     type="radio"
                     name="payment"
                   />{" "}
-                  <b className="ml-2">Pay with Klarna</b>
+                  <b className="ml-2">Klarna ile öde</b>
                 </span>
                 <b className="rounded bg-pink-300 px-1 text-xs">Klarna</b>
               </label>
@@ -272,22 +271,22 @@ export default function CheckoutPage() {
                 type="checkbox"
                 required
               />
-              I have read and agree to the{" "}
+              Okudum ve kabul ediyorum:{" "}
               <a className="underline" href="#terms">
-                Terms of Service.
+                Hizmet Koşulları.
               </a>
             </label>
             <div className="mt-8 flex items-start justify-between gap-4 text-sm">
               <p>
-                <b>Save my information for a faster checkout</b>
+                <b>Daha hızlı ödeme için bilgilerimi kaydet</b>
                 <br />
                 <span className="text-black/55">
-                  By paying, you agree to create a Shop account subject to Shop&apos;s Terms and
-                  Privacy Policy.
+                  Ödeme yaparak kullanım koşulları ve gizlilik politikasına tabi bir hesap
+                  oluşturmayı kabul edersiniz.
                 </span>
               </p>
               <button type="button" className="shrink-0">
-                Not now
+                Şimdi değil
               </button>
             </div>
             <button
@@ -295,7 +294,7 @@ export default function CheckoutPage() {
               disabled={!terms}
               type="submit"
             >
-              Pay now
+              Şimdi öde
             </button>
             {notice && (
               <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-950" role="status">
@@ -303,10 +302,10 @@ export default function CheckoutPage() {
               </p>
             )}
             <div className="mt-10 flex gap-5 border-t border-black/15 pt-4 text-sm underline">
-              <a href="#refund">Refund policy</a>
-              <a href="#privacy">Privacy policy</a>
+              <a href="#refund">İade politikası</a>
+              <a href="#privacy">Gizlilik politikası</a>
               <a id="terms" href="#terms">
-                Terms of service
+                Hizmet koşulları
               </a>
             </div>
           </section>
@@ -359,26 +358,26 @@ function OrderSummary({
         <div className="mt-5 flex gap-3">
           <input
             className="h-12 min-w-0 flex-1 rounded-xl border border-black/15 bg-white px-3 outline-none focus:border-black"
-            placeholder="Discount code or gift card"
+            placeholder="İndirim kodu veya hediye kartı"
           />
           <button
             className="rounded-xl border border-black/10 px-4 font-semibold text-black/45"
             type="button"
           >
-            Apply
+            Uygula
           </button>
         </div>
         <div className="mt-8 space-y-2 text-sm">
           <div className="flex justify-between">
-            <span>Subtotal · {count} items</span>
+            <span>Ara toplam · {count} ürün</span>
             <span>{formatPrice(subtotal)}</span>
           </div>
           <div className="flex justify-between">
-            <span>Shipping</span>
-            <span className="text-black/55">Enter shipping address</span>
+            <span>Kargo</span>
+            <span className="text-black/55">Teslimat adresini girin</span>
           </div>
           <div className="flex items-baseline justify-between pt-2 text-lg font-bold">
-            <span>Total</span>
+            <span>Toplam</span>
             <span>
               <small className="mr-1 text-xs font-normal text-black/55">{CURRENCY_LABEL}</small>
               {formatPrice(subtotal)}

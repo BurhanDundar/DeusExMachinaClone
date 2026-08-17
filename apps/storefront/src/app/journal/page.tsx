@@ -6,7 +6,7 @@ export default function Journal() {
   return (
     <main>
       <section className="shell py-12">
-        <h1 className="display mb-12 text-6xl">Journal</h1>
+        <h1 className="display mb-12 text-6xl">Hikâyeler</h1>
         <div className="grid gap-12 md:grid-cols-3">
           {articles.map((a) => (
             <article key={a.slug}>

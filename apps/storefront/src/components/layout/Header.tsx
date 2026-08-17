@@ -7,7 +7,13 @@ import { useUIStore } from "@/store/ui-store";
 import { MobileMenu } from "./MobileMenu";
 import { AccountAction } from "./AccountAction";
 
-const nav = ["Men", "Women", "Accessories", "Culture", "Sale"];
+const nav = [
+  { label: "Erkek", slug: "men" },
+  { label: "Kadın", slug: "women" },
+  { label: "Aksesuarlar", slug: "accessories" },
+  { label: "Kültür", slug: "culture" },
+  { label: "İndirim", slug: "sale" },
+];
 export function Header() {
   const s = useUIStore();
   const pathname = usePathname();
@@ -22,10 +28,10 @@ export function Header() {
           <button
             onClick={s.openCart}
             className="focus-ring absolute right-4 p-2"
-            aria-label={`Bag with ${count} items`}
+            aria-label={`Sepette ${count} ürün var`}
           >
             <ShoppingBag size={22} />
-            <span className="sr-only">Bag ({count})</span>
+            <span className="sr-only">Sepet ({count})</span>
           </button>
         </div>
       </header>
@@ -34,21 +40,21 @@ export function Header() {
     <>
       <header className="sticky top-0 z-40 h-[88px] border-b border-black/5 bg-paper/95 backdrop-blur-md md:h-[96px]">
         <div className="shell relative flex h-full items-center justify-between">
-          <nav className="hidden gap-7 lg:flex" aria-label="Primary">
-            {nav.map((n) => (
+          <nav className="hidden gap-7 lg:flex" aria-label="Ana menü">
+            {nav.map((item) => (
               <Link
                 className="focus-ring font-semibold"
-                href={`/collections/${n.toLowerCase()}`}
-                key={n}
+                href={`/collections/${item.slug}`}
+                key={item.slug}
               >
-                {n} <span aria-hidden>＋</span>
+                {item.label} <span aria-hidden>＋</span>
               </Link>
             ))}
           </nav>
           <button
             onClick={s.toggleMenu}
             className="focus-ring justify-self-start p-2 lg:hidden"
-            aria-label={s.menuOpen ? "Close menu" : "Open menu"}
+            aria-label={s.menuOpen ? "Menüyü kapat" : "Menüyü aç"}
           >
             {s.menuOpen ? <X /> : <Menu />}
           </button>
@@ -59,19 +65,19 @@ export function Header() {
             <button
               onClick={s.openSearch}
               className="focus-ring flex items-center gap-1 p-2"
-              aria-label="Search"
+              aria-label="Ara"
             >
               <Search size={22} />
-              <span className="hidden xl:inline">Search</span>
+              <span className="hidden xl:inline">Ara</span>
             </button>
             <AccountAction />
             <button
               onClick={s.openCart}
               className="focus-ring relative flex items-center gap-1 p-2"
-              aria-label={`Bag with ${count} items`}
+              aria-label={`Sepette ${count} ürün var`}
             >
               <ShoppingBag size={23} />
-              <span className="hidden sm:inline">Bag ({count})</span>
+              <span className="hidden sm:inline">Sepet ({count})</span>
               <span className="absolute right-0 top-0 text-[10px] sm:hidden">{count}</span>
             </button>
           </div>

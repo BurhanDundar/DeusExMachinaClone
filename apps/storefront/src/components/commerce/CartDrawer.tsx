@@ -18,7 +18,7 @@ export function CartDrawer() {
       {s.cartOpen && (
         <>
           <motion.button
-            aria-label="Close cart"
+            aria-label="Sepeti kapat"
             onClick={s.closeCart}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -33,17 +33,17 @@ export function CartDrawer() {
             className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-paper p-5"
             role="dialog"
             aria-modal="true"
-            aria-label="Shopping bag"
+            aria-label="Alışveriş sepeti"
           >
             <div className="flex items-center justify-between border-b border-black pb-5">
-              <h2 className="display text-3xl">Your bag ({s.items.length})</h2>
-              <button onClick={s.closeCart} className="focus-ring p-2">
+              <h2 className="display text-3xl">Sepetim ({s.items.length})</h2>
+              <button onClick={s.closeCart} className="focus-ring p-2" aria-label="Sepeti kapat">
                 <X />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto">
               {s.items.length === 0 ? (
-                <p className="py-12 text-center text-black/55">Your bag is ready for the road.</p>
+                <p className="py-12 text-center text-black/55">Sepetiniz boş.</p>
               ) : (
                 s.items.map((i) => (
                   <div
@@ -71,7 +71,7 @@ export function CartDrawer() {
                           onClick={() => s.remove(i.product.id, i.size)}
                           className="ml-auto text-xs underline"
                         >
-                          Remove
+                          Kaldır
                         </button>
                       </div>
                     </div>
@@ -81,7 +81,7 @@ export function CartDrawer() {
             </div>
             <div className="border-t border-black pt-5">
               <div className="mb-5 flex justify-between text-lg font-bold">
-                <span>Subtotal</span>
+                <span>Ara toplam</span>
                 <span>{formatPrice(subtotal)}</span>
               </div>
               <button
@@ -89,7 +89,7 @@ export function CartDrawer() {
                 disabled={!s.items.length}
                 className="focus-ring w-full bg-black py-4 font-bold text-white disabled:bg-black/25"
               >
-                Checkout
+                Ödemeye geç
               </button>
             </div>
           </motion.aside>

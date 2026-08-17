@@ -31,7 +31,7 @@ export function Campaign({
           <p className="mb-3 text-sm font-bold uppercase tracking-[.18em]">{kicker}</p>
           <h1 className="display max-w-2xl text-4xl md:text-6xl">{title}</h1>
           <span className="mt-5 flex items-center gap-2 text-lg font-bold">
-            <ArrowRight /> Explore now
+            <ArrowRight /> Şimdi keşfet
           </span>
         </div>
       </Link>

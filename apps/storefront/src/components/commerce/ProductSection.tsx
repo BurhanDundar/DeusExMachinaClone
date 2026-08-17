@@ -113,11 +113,11 @@ export function ProductSection({
           href={`/collections/${title.toLowerCase().replaceAll(" ", "-")}`}
           className="focus-ring flex items-center gap-2 font-bold"
         >
-          <ArrowRight /> Shop all
+          <ArrowRight /> Tümünü gör
         </Link>
       </div>
-      <div ref={viewport} className="overflow-hidden touch-pan-y" aria-label={`${title} products`}>
-        <span className="sr-only">Swipe or drag to browse products</span>
+      <div ref={viewport} className="overflow-hidden touch-pan-y" aria-label={`${title} ürünleri`}>
+        <span className="sr-only">Ürünlere göz atmak için kaydırın veya sürükleyin</span>
         <motion.div
           animate={controls}
           className="flex cursor-grab select-none active:cursor-grabbing"
@@ -146,7 +146,10 @@ export function ProductSection({
         </motion.div>
       </div>
       {pageCount > 1 && (
-        <div className="mt-5 md:hidden" aria-label={`Page ${activePage + 1} of ${pageCount}`}>
+        <div
+          className="mt-5 md:hidden"
+          aria-label={`${pageCount} sayfadan ${activePage + 1}. sayfa`}
+        >
           <div className="h-[2px] bg-black/15">
             <div
               className="h-full bg-black transition-[width] duration-200"

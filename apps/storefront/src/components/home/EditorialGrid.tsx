@@ -2,17 +2,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 const cards = [
-  { title: "Field Notes", pos: "object-left", img: "/campaign/campaign-wide.jpg" },
-  { title: "Road Tests", pos: "object-center", img: "/campaign/campaign-portrait.jpg" },
-  { title: "Workshop", pos: "object-right", img: "/campaign/campaign-wide.jpg" },
+  { title: "Saha Notları", pos: "object-left", img: "/campaign/campaign-wide.jpg" },
+  { title: "Yol Deneyimleri", pos: "object-center", img: "/campaign/campaign-portrait.jpg" },
+  { title: "Atölye", pos: "object-right", img: "/campaign/campaign-wide.jpg" },
 ];
 export function EditorialGrid() {
   return (
     <section className="shell section-space">
       <div className="mb-10 flex justify-between">
-        <h2 className="display text-3xl md:text-4xl">Stories in motion</h2>
+        <h2 className="display text-3xl md:text-4xl">Yoldan hikâyeler</h2>
         <Link href="/journal" className="focus-ring flex items-center gap-2 font-bold">
-          <ArrowRight /> Read all
+          <ArrowRight /> Tümünü oku
         </Link>
       </div>
       <div className="grid gap-2 md:grid-cols-3">

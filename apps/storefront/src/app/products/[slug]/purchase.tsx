@@ -25,7 +25,7 @@ export function ProductPurchase({ product }: { product: Product }) {
         onClick={() => add(product, size)}
         className="mt-4 w-full bg-black py-4 font-bold text-white disabled:bg-black/25"
       >
-        Add to bag
+        Sepete ekle
       </button>
     </div>
   );

@@ -28,7 +28,7 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
   if (!response.ok) {
     const body = await response.json().catch(() => ({
       code: "REQUEST_FAILED",
-      message: "The request could not be completed",
+      message: "İstek tamamlanamadı.",
     }));
     throw new ApiError(response.status, body);
   }

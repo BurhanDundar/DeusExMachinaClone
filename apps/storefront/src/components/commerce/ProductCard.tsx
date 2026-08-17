@@ -47,12 +47,12 @@ export function ProductCard({ product }: { product: Product }) {
           )}
         </p>
         <p className="mt-3 font-semibold">
-          {product.color} <span className="text-black/35">+ {product.colors.length} styles</span>
+          {product.color} <span className="text-black/35">+ {product.colors.length} seçenek</span>
         </p>
         {product.inventoryStatus !== "sold-out" && (
           <button
             onClick={() => setSizes((v) => !v)}
-            aria-label={`Quick add ${product.name}`}
+            aria-label={`${product.name} ürününü hızlı ekle`}
             className="focus-ring absolute right-0 top-3 p-2"
           >
             <Plus />

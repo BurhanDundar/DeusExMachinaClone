@@ -29,7 +29,7 @@ export default function Register() {
       if (cause instanceof ApiError) {
         const detail = cause.body.fieldErrors ? Object.values(cause.body.fieldErrors)[0] : null;
         setError(detail ?? cause.message);
-      } else setError("Unable to create your account right now");
+      } else setError("Şu anda hesap oluşturulamıyor.");
     } finally {
       setSubmitting(false);
     }
@@ -37,10 +37,10 @@ export default function Register() {
 
   return (
     <main className="mx-auto min-h-[70vh] max-w-lg px-5 py-20">
-      <h1 className="display text-5xl">Create account</h1>
+      <h1 className="display text-5xl">Hesap oluştur</h1>
       <form className="mt-10 space-y-4" onSubmit={submit}>
         <label className="block">
-          First name
+          Ad
           <input
             name="firstName"
             autoComplete="given-name"
@@ -50,7 +50,7 @@ export default function Register() {
           />
         </label>
         <label className="block">
-          Last name
+          Soyad
           <input
             name="lastName"
             autoComplete="family-name"
@@ -60,7 +60,7 @@ export default function Register() {
           />
         </label>
         <label className="block">
-          Email
+          E-posta
           <input
             name="email"
             type="email"
@@ -70,7 +70,7 @@ export default function Register() {
           />
         </label>
         <label className="block">
-          Password
+          Şifre
           <input
             name="password"
             type="password"
@@ -82,7 +82,7 @@ export default function Register() {
           />
         </label>
         <p id="password-help" className="text-xs text-black/55">
-          At least 8 characters with uppercase, lowercase and a number.
+          En az 8 karakter; büyük harf, küçük harf ve rakam içermelidir.
         </p>
         {error && (
           <p role="alert" className="border border-red-700 bg-red-50 p-3 text-red-800">
@@ -93,11 +93,11 @@ export default function Register() {
           disabled={submitting}
           className="w-full bg-black p-4 font-bold text-white disabled:opacity-50"
         >
-          {submitting ? "Creating account…" : "Create account"}
+          {submitting ? "Hesap oluşturuluyor…" : "Hesap oluştur"}
         </button>
       </form>
       <Link href="/account/login" className="mt-6 block text-sm underline">
-        Already have an account?
+        Zaten hesabınız var mı? Giriş yapın
       </Link>
     </main>
   );

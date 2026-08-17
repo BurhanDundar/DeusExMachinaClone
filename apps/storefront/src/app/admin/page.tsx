@@ -57,6 +57,11 @@ type Notification = {
 };
 
 const statuses: ProductForm["status"][] = ["DRAFT", "ACTIVE", "ARCHIVED"];
+const statusLabels: Record<ProductForm["status"], string> = {
+  DRAFT: "Taslak",
+  ACTIVE: "Yayında",
+  ARCHIVED: "Arşivlenmiş",
+};
 
 function blankProduct(categories: AdminCategory[]): ProductForm {
   return {
@@ -291,11 +296,13 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen bg-paper px-4 py-8 sm:px-8 lg:px-12">
-      {notification && <Toast notification={notification} onDismiss={() => setNotification(null)} />}
+      {notification && (
+        <Toast notification={notification} onDismiss={() => setNotification(null)} />
+      )}
       <div className="mx-auto max-w-[1440px]">
         <header className="flex flex-wrap items-end justify-between gap-5 border-b-2 border-black pb-6">
           <div>
-            <p className="font-semibold uppercase tracking-[0.18em]">Binks Store</p>
+            <p className="font-semibold uppercase tracking-[0.18em]">Binks Mağaza</p>
             <h1 className="display mt-2 text-5xl">Yönetim</h1>
           </div>
           <p className="font-semibold">
@@ -438,22 +445,22 @@ export default function AdminPage() {
   );
 }
 
-function Toast({
-  notification,
-  onDismiss,
-}: {
-  notification: Notification;
-  onDismiss: () => void;
-}) {
+function Toast({ notification, onDismiss }: { notification: Notification; onDismiss: () => void }) {
   const success = notification.tone === "success";
   return (
     <div
       role={success ? "status" : "alert"}
       className={`fixed bottom-5 right-5 z-50 flex max-w-sm items-start gap-3 border p-4 shadow-lg ${
-        success ? "border-emerald-800 bg-emerald-50 text-emerald-950" : "border-red-800 bg-red-50 text-red-950"
+        success
+          ? "border-emerald-800 bg-emerald-50 text-emerald-950"
+          : "border-red-800 bg-red-50 text-red-950"
       }`}
     >
-      {success ? <Check className="mt-0.5 shrink-0" size={18} /> : <X className="mt-0.5 shrink-0" size={18} />}
+      {success ? (
+        <Check className="mt-0.5 shrink-0" size={18} />
+      ) : (
+        <X className="mt-0.5 shrink-0" size={18} />
+      )}
       <p className="pr-2 font-semibold leading-5">{notification.text}</p>
       <button
         type="button"
@@ -694,7 +701,9 @@ function ProductEditor({
               className={`${input} mt-2`}
             >
               {statuses.map((status) => (
-                <option key={status}>{status}</option>
+                <option key={status} value={status}>
+                  {statusLabels[status]}
+                </option>
               ))}
             </select>
           </label>
@@ -780,15 +789,15 @@ function ProductEditor({
         <ImageAddButton disabled={uploading} onSelect={addImage} />
       </section>
       <section className="border-t border-black/15 pt-6">
-        <h3 className="font-bold">Varyantlar ve stok</h3>
+        <h3 className="font-bold">Ürün seçenekleri ve stok</h3>
         <p className="mt-1 text-sm text-black/65">
-          Her varyant için benzersiz bir SKU ve mevcut stok miktarı gir.
+          Ürünün beden, renk veya model seçeneklerini ve stok miktarlarını yönetin.
         </p>
         {form.variants.map((variant, index) => (
           <div key={index} className="mt-3 border border-black/15 p-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="font-bold">
-                Varyant adı
+                Seçenek adı
                 <input
                   required
                   value={variant.title}
@@ -882,7 +891,7 @@ function ProductEditor({
                   }
                   className="focus-ring font-bold underline"
                 >
-                  Varyantı kaldır
+                  Seçeneği kaldır
                 </button>
               )}
             </div>
@@ -910,7 +919,7 @@ function ProductEditor({
           }
           className="focus-ring mt-3 flex items-center gap-1 font-bold"
         >
-          <Plus size={15} /> Varyant ekle
+          <Plus size={15} /> Yeni seçenek ekle
         </button>
       </section>
       <button

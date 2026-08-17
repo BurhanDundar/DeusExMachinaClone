@@ -1,23 +1,23 @@
 export const articles = [
   {
     slug: "workshop-at-dawn",
-    title: "Workshop at Dawn",
-    date: "Aug 02, 2026",
-    excerpt: "A morning with the makers keeping old machines moving.",
+    title: "Şafakta Atölye",
+    date: "2 Ağustos 2026",
+    excerpt: "Eski makineleri hayatta tutan ustalarla bir sabah.",
     image: "/campaign/campaign-wide.jpg",
   },
   {
     slug: "roads-less-measured",
-    title: "Roads Less Measured",
-    date: "Jul 18, 2026",
-    excerpt: "Two days, one map, and no fixed destination.",
+    title: "Ölçülmemiş Yollar",
+    date: "18 Temmuz 2026",
+    excerpt: "İki gün, bir harita ve belirlenmemiş bir rota.",
     image: "/campaign/campaign-portrait.jpg",
   },
   {
     slug: "objects-with-purpose",
-    title: "Objects With Purpose",
-    date: "Jun 26, 2026",
-    excerpt: "Inside the studios shaping tomorrow's useful things.",
+    title: "Amacı Olan Nesneler",
+    date: "26 Haziran 2026",
+    excerpt: "Yarının işlevli nesnelerini şekillendiren stüdyoların içinde.",
     image: "/campaign/campaign-wide.jpg",
   },
 ];

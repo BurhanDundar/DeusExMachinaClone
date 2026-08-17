@@ -34,14 +34,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <p className="mt-8 max-w-md leading-6 text-black/65">{p.description}</p>
           <ProductPurchase product={p} />
           <details className="mt-10 border-t border-black py-5">
-            <summary className="cursor-pointer font-bold">Details & care</summary>
+            <summary className="cursor-pointer font-bold">Ürün detayları ve bakım</summary>
             <p className="pt-4 text-black/60">
-              Mid-weight fabric. Relaxed fit. Wash cool and line dry.
+              Orta kalınlıkta kumaş. Rahat kalıp. Düşük sıcaklıkta yıkayın ve asarak kurutun.
             </p>
           </details>
           <details className="border-y border-black py-5">
-            <summary className="cursor-pointer font-bold">Shipping & returns</summary>
-            <p className="pt-4 text-black/60">Complimentary returns within 30 days.</p>
+            <summary className="cursor-pointer font-bold">Kargo ve iade</summary>
+            <p className="pt-4 text-black/60">30 gün içinde ücretsiz iade imkânı.</p>
           </details>
         </div>
       </div>

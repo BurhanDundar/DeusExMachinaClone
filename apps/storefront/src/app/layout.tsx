@@ -7,12 +7,12 @@ import { AuthProvider } from "@/auth/AuthProvider";
 
 export const metadata: Metadata = {
   title: "Northline Supply",
-  description: "Independent goods for life in motion.",
+  description: "Hareket hâlindeki yaşam için özgün ürünler.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="tr">
       <body>
         <AuthProvider>
           <Header />

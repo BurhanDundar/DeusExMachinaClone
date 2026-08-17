@@ -85,7 +85,7 @@ export function SearchDrawer() {
         <>
           <motion.button
             onClick={s.closeSearch}
-            aria-label="Close search"
+            aria-label="Aramayı kapat"
             className="fixed inset-0 z-40 bg-black/40"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -93,7 +93,7 @@ export function SearchDrawer() {
           />
           <motion.aside
             role="dialog"
-            aria-label="Search"
+            aria-label="Ürün ara"
             className="fixed right-0 top-0 z-50 h-full w-full max-w-xl bg-paper p-6"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
@@ -105,10 +105,10 @@ export function SearchDrawer() {
                 autoFocus
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search products"
+                placeholder="Ürün ara"
                 className="min-w-0 flex-1 bg-transparent p-4 text-xl outline-none"
               />
-              <button onClick={s.closeSearch} className="p-2">
+              <button onClick={s.closeSearch} className="p-2" aria-label="Aramayı kapat">
                 <X />
               </button>
             </div>

@@ -17,21 +17,21 @@ export default async function Home() {
     <main>
       <Campaign
         image="/campaign/campaign-portrait.jpg"
-        kicker="Autumn / Winter 26"
-        title="Built for the long way round."
+        kicker="Sonbahar / Kış 26"
+        title="Uzun yollar için tasarlandı."
       />
       <ProductSection title="Yeni Gelenler" products={featuredProducts} />
       <Campaign
         image="/campaign/campaign-wide.jpg"
-        kicker="Motion studies / 01"
-        title="City limits are only suggestions."
+        kicker="Hareket çalışmaları / 01"
+        title="Şehir sınırları yalnızca bir öneridir."
         portrait
       />
       <ProductSection title="Atölye Giyimi" products={clothing} />
       <section className="shell">
         <div className="grid gap-2 md:grid-cols-2">
-          <CampaignTile image="/campaign/campaign-portrait.jpg" title="Mens" />
-          <CampaignTile image="/campaign/campaign-wide.jpg" title="Womens" />
+          <CampaignTile image="/campaign/campaign-portrait.jpg" title="Erkek" slug="men" />
+          <CampaignTile image="/campaign/campaign-wide.jpg" title="Kadın" slug="women" />
         </div>
       </section>
       <ProductSection title="Aksesuarlar ve Defterler" products={[...accessories, ...notebooks]} />
@@ -40,10 +40,10 @@ export default async function Home() {
     </main>
   );
 }
-function CampaignTile({ image, title }: { image: string; title: string }) {
+function CampaignTile({ image, title, slug }: { image: string; title: string; slug: string }) {
   return (
     <a
-      href={`/collections/${title.toLowerCase()}`}
+      href={`/collections/${slug}`}
       className="group relative block aspect-[4/5] overflow-hidden bg-black"
     >
       <Image

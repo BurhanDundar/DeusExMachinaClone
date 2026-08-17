@@ -16,8 +16,8 @@ export default async function Article({ params }: { params: Promise<{ slug: stri
           <p>{a.date}</p>
           <h1 className="display mt-4 text-5xl md:text-7xl">{a.title}</h1>
           <p className="mt-8 text-xl leading-8">
-            {a.excerpt} This fictional editorial follows patient craft, useful objects, and the
-            people who find a better line through the everyday.
+            {a.excerpt} Bu editoryal; özenli zanaatı, işlevli nesneleri ve gündelik hayatın içinde
+            kendi yolunu çizen insanları anlatıyor.
           </p>
         </div>
       </article>
