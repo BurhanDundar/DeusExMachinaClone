@@ -30,7 +30,7 @@ export function ProductCard({ product }: { product: Product }) {
           sizes="(max-width:767px) 50vw,25vw"
         />
         <Image
-          src={product.images[1]}
+          src={product.images[1] ?? product.images[0]}
           alt=""
           fill
           draggable={false}

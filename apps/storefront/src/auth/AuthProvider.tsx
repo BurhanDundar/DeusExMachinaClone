@@ -23,6 +23,7 @@ type AuthResponse = {
 type RegisterInput = { email: string; password: string; firstName: string; lastName: string };
 type AuthContextValue = {
   user: AccountUser | null;
+  accessToken: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
@@ -124,8 +125,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ user, loading, login, register, logout, authenticatedFetch }),
-    [user, loading, login, register, logout, authenticatedFetch]
+    () => ({ user, accessToken, loading, login, register, logout, authenticatedFetch }),
+    [user, accessToken, loading, login, register, logout, authenticatedFetch]
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

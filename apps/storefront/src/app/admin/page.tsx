@@ -2,7 +2,8 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Archive, Check, ImageIcon, Pencil, Plus, Save, X } from "lucide-react";
+import { upload } from "@vercel/blob/client";
+import { Archive, Check, ImageIcon, Pencil, Plus, Save, Upload, X } from "lucide-react";
 import { useAuth } from "@/auth/AuthProvider";
 import { ApiError } from "@/lib/api";
 import { formatPrice } from "@/lib/currency";
@@ -50,6 +51,11 @@ type ProductForm = Omit<AdminProduct, "id" | "category"> & {
   variants: ProductVariant[];
 };
 
+type Notification = {
+  tone: "success" | "error";
+  text: string;
+};
+
 const statuses: ProductForm["status"][] = ["DRAFT", "ACTIVE", "ARCHIVED"];
 
 function blankProduct(categories: AdminCategory[]): ProductForm {
@@ -94,14 +100,14 @@ function formFromProduct(product: AdminProduct): ProductForm {
 
 export default function AdminPage() {
   const router = useRouter();
-  const { user, loading, authenticatedFetch } = useAuth();
+  const { user, accessToken, loading, authenticatedFetch } = useAuth();
   const [tab, setTab] = useState<"products" | "categories">("products");
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [productForm, setProductForm] = useState<ProductForm | null>(null);
   const [categoryForm, setCategoryForm] = useState<AdminCategory | null>(null);
-  const [message, setMessage] = useState("");
+  const [notification, setNotification] = useState<Notification | null>(null);
   const [saving, setSaving] = useState(false);
   const latestAuthenticatedFetch = useRef(authenticatedFetch);
   const loadedUserId = useRef<string | null>(null);
@@ -140,7 +146,7 @@ export default function AdminPage() {
             : error instanceof Error
               ? error.message
               : "Panel yüklenemedi.";
-        setMessage(detail);
+        setNotification({ tone: "error", text: detail });
       });
     return () => {
       active = false;
@@ -150,6 +156,12 @@ export default function AdminPage() {
   useEffect(() => {
     if (selectedProduct) setProductForm(formFromProduct(selectedProduct));
   }, [selectedProduct]);
+
+  useEffect(() => {
+    if (!notification) return;
+    const timeout = window.setTimeout(() => setNotification(null), 4500);
+    return () => window.clearTimeout(timeout);
+  }, [notification]);
 
   if (loading || !user) return <main className="min-h-[60vh] p-8">Yükleniyor…</main>;
   if (user.role !== "ADMIN") {
@@ -174,7 +186,7 @@ export default function AdminPage() {
     event.preventDefault();
     if (!productForm) return;
     setSaving(true);
-    setMessage("");
+    setNotification(null);
     try {
       const body = {
         categoryId: productForm.categoryId,
@@ -217,27 +229,37 @@ export default function AdminPage() {
       await reload();
       setSelectedId(savedProduct.id);
       setProductForm(formFromProduct(savedProduct));
-      setMessage("Ürün kaydedildi.");
+      router.refresh();
+      setNotification({ tone: "success", text: "Ürün başarıyla kaydedildi." });
     } catch (error) {
-      setMessage(
-        error instanceof ApiError
-          ? error.body.fieldErrors && Object.keys(error.body.fieldErrors).length
-            ? `Ürünü kaydetmek için şu alanları kontrol et: ${Object.values(error.body.fieldErrors).join(", ")}`
-            : error.message
-          : "Ürün kaydedilemedi. Lütfen tekrar dene."
-      );
+      setNotification({
+        tone: "error",
+        text:
+          error instanceof ApiError
+            ? error.body.fieldErrors && Object.keys(error.body.fieldErrors).length
+              ? `Ürün kaydedilemedi: ${Object.values(error.body.fieldErrors)[0]}`
+              : error.message
+            : "Ürün kaydedilemedi. Lütfen tekrar dene.",
+      });
     } finally {
       setSaving(false);
     }
   }
 
   async function archiveProduct() {
-    if (!selectedId || !window.confirm("Bu ürün arşivlensin mi?")) return;
-    await authenticatedFetch(`/api/admin/catalog/products/${selectedId}`, { method: "DELETE" });
-    await reload();
-    setSelectedId(null);
-    setProductForm(null);
-    setMessage("Ürün arşivlendi.");
+    if (!selectedId) return;
+    try {
+      await authenticatedFetch(`/api/admin/catalog/products/${selectedId}`, { method: "DELETE" });
+      await reload();
+      setSelectedId(null);
+      setProductForm(null);
+      setNotification({ tone: "success", text: "Ürün arşivlendi." });
+    } catch (error) {
+      setNotification({
+        tone: "error",
+        text: error instanceof ApiError ? error.message : "Ürün arşivlenemedi.",
+      });
+    }
   }
 
   async function saveCategory(event: FormEvent<HTMLFormElement>) {
@@ -256,9 +278,12 @@ export default function AdminPage() {
       await authenticatedFetch(path, { method, body: JSON.stringify(body) });
       await reload();
       setCategoryForm(null);
-      setMessage("Kategori kaydedildi.");
+      setNotification({ tone: "success", text: "Kategori başarıyla kaydedildi." });
     } catch (error) {
-      setMessage(error instanceof ApiError ? error.message : "Kategori kaydedilemedi.");
+      setNotification({
+        tone: "error",
+        text: error instanceof ApiError ? error.message : "Kategori kaydedilemedi.",
+      });
     } finally {
       setSaving(false);
     }
@@ -266,6 +291,7 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen bg-paper px-4 py-8 sm:px-8 lg:px-12">
+      {notification && <Toast notification={notification} onDismiss={() => setNotification(null)} />}
       <div className="mx-auto max-w-[1440px]">
         <header className="flex flex-wrap items-end justify-between gap-5 border-b-2 border-black pb-6">
           <div>
@@ -287,9 +313,6 @@ export default function AdminPage() {
             </button>
           ))}
         </nav>
-        {message && (
-          <p className="mt-5 border border-black bg-white p-3 font-semibold">{message}</p>
-        )}
         {tab === "products" ? (
           <div className="mt-8 grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
             <section>
@@ -297,7 +320,7 @@ export default function AdminPage() {
                 onClick={() => {
                   setSelectedId(null);
                   setProductForm(blankProduct(categories));
-                  setMessage("");
+                  setNotification(null);
                 }}
                 className="focus-ring mb-4 flex items-center gap-2 bg-black px-4 py-3 font-bold text-white"
               >
@@ -318,7 +341,7 @@ export default function AdminPage() {
                     key={product.id}
                     onClick={() => {
                       setSelectedId(product.id);
-                      setMessage("");
+                      setNotification(null);
                     }}
                     className={`focus-ring group overflow-hidden border text-left transition-colors ${selectedId === product.id ? "border-black bg-fog" : "border-black/20 bg-white hover:border-black"}`}
                   >
@@ -354,7 +377,9 @@ export default function AdminPage() {
                 form={productForm}
                 categories={categories}
                 setForm={setProductForm}
+                accessToken={accessToken}
                 saving={saving}
+                onNotify={setNotification}
                 onSubmit={saveProduct}
                 onArchive={selectedId ? archiveProduct : undefined}
                 onCancel={() => {
@@ -413,24 +438,148 @@ export default function AdminPage() {
   );
 }
 
+function Toast({
+  notification,
+  onDismiss,
+}: {
+  notification: Notification;
+  onDismiss: () => void;
+}) {
+  const success = notification.tone === "success";
+  return (
+    <div
+      role={success ? "status" : "alert"}
+      className={`fixed bottom-5 right-5 z-50 flex max-w-sm items-start gap-3 border p-4 shadow-lg ${
+        success ? "border-emerald-800 bg-emerald-50 text-emerald-950" : "border-red-800 bg-red-50 text-red-950"
+      }`}
+    >
+      {success ? <Check className="mt-0.5 shrink-0" size={18} /> : <X className="mt-0.5 shrink-0" size={18} />}
+      <p className="pr-2 font-semibold leading-5">{notification.text}</p>
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="focus-ring -mr-1 -mt-1 shrink-0 p-1"
+        aria-label="Bildirimi kapat"
+      >
+        <X size={16} />
+      </button>
+    </div>
+  );
+}
+
 function ProductEditor({
   form,
   categories,
   setForm,
+  accessToken,
   saving,
+  onNotify,
   onSubmit,
   onArchive,
   onCancel,
 }: {
   form: ProductForm;
   categories: AdminCategory[];
-  setForm: (form: ProductForm) => void;
+  setForm: React.Dispatch<React.SetStateAction<ProductForm | null>>;
+  accessToken: string | null;
   saving: boolean;
+  onNotify: (notification: Notification) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onArchive?: () => void;
   onCancel: () => void;
 }) {
   const input = "w-full border border-black/25 bg-white px-3 py-2 outline-none focus:border-black";
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+
+  async function uploadImage(file: File): Promise<string> {
+    if (!accessToken)
+      throw new Error("Oturumun sona ermiş. Görsel yüklemek için tekrar giriş yap.");
+    const acceptedTypes = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+    if (!acceptedTypes.includes(file.type)) {
+      throw new Error("Yalnızca JPG, PNG, WebP veya AVIF görsel yükleyebilirsin.");
+    }
+    if (file.size > 8 * 1024 * 1024) throw new Error("Görsel dosyası en fazla 8 MB olabilir.");
+
+    const safeName =
+      file.name
+        .normalize("NFD")
+        .replace(/[\\u0300-\\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9._-]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "product-image";
+    try {
+      const blob = await upload(`products/${safeName}`, file, {
+        access: "public",
+        contentType: file.type,
+        handleUploadUrl: "/api/admin/uploads",
+        headers: { Authorization: `Bearer ${accessToken}` },
+        onUploadProgress: ({ percentage }) => setUploadProgress(Math.round(percentage)),
+      });
+      return blob.url;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Görsel yüklenemedi.";
+      if (/Failed to\s+retrieve the client token/i.test(message)) {
+        throw new Error("Görsel depolama hazır değil. BLOB_READ_WRITE_TOKEN ayarını kontrol et.");
+      }
+      throw error;
+    }
+  }
+
+  async function replaceImage(index: number, file: File) {
+    setUploading(true);
+    setUploadProgress(0);
+    try {
+      const url = await uploadImage(file);
+      setForm((current) =>
+        current
+          ? {
+              ...current,
+              images: current.images.map((image, imageIndex) =>
+                imageIndex === index
+                  ? { ...image, url, altText: image.altText?.trim() || file.name }
+                  : image
+              ),
+            }
+          : current
+      );
+      onNotify({
+        tone: "success",
+        text: "Görsel yüklendi. Değişikliği yayınlamak için Ürünü Kaydet düğmesine bas.",
+      });
+    } catch (error) {
+      onNotify({
+        tone: "error",
+        text: error instanceof Error ? error.message : "Görsel yüklenemedi.",
+      });
+    } finally {
+      setUploading(false);
+      setUploadProgress(null);
+    }
+  }
+
+  async function addImage(file: File) {
+    setUploading(true);
+    setUploadProgress(0);
+    try {
+      const url = await uploadImage(file);
+      setForm((current) =>
+        current ? { ...current, images: [...current.images, { url, altText: file.name }] } : current
+      );
+      onNotify({
+        tone: "success",
+        text: "Görsel eklendi. Değişikliği yayınlamak için Ürünü Kaydet düğmesine bas.",
+      });
+    } catch (error) {
+      onNotify({
+        tone: "error",
+        text: error instanceof Error ? error.message : "Görsel yüklenemedi.",
+      });
+    } finally {
+      setUploading(false);
+      setUploadProgress(null);
+    }
+  }
+
   return (
     <form onSubmit={onSubmit} className="space-y-6 border border-black bg-white p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-black/20 pb-5">
@@ -570,44 +719,31 @@ function ProductEditor({
       <section className="border-t border-black/15 pt-6">
         <h3 className="font-bold">Ürün görselleri</h3>
         <p className="mt-1 text-sm text-black/65">
-          İlk görsel ürünün kapak görseli olarak kullanılır. Sıralama ekleme sırasına göredir.
+          İlk görsel ürünün kapak görseli olarak kullanılır. Mevcut görselin üzerine tıklayarak
+          telefonundan veya bilgisayarından yenisini seçebilirsin.
         </p>
+        {uploading && (
+          <p className="mt-3 border border-black/20 bg-fog p-3 font-semibold">
+            Görsel yükleniyor{uploadProgress === null ? "…" : `: %${uploadProgress}`}
+          </p>
+        )}
         {form.images.map((image, index) => (
           <div
             key={index}
             className="mt-3 grid gap-3 border border-black/15 p-3 sm:grid-cols-[9rem_1fr]"
           >
-            <div className="aspect-square overflow-hidden bg-fog">
-              {image.url ? (
-                <img
-                  src={image.url}
-                  alt={image.altText || form.name || "Ürün görseli"}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span className="flex h-full items-center justify-center px-4 text-center text-sm font-semibold text-black/55">
-                  Görsel önizlemesi
-                </span>
-              )}
+            <div>
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-black/55">
+                {index === 0 ? "Kapak görseli" : `Galeri görseli ${index + 1}`}
+              </p>
+              <ImagePicker
+                image={image}
+                productName={form.name}
+                disabled={uploading}
+                onSelect={(file) => replaceImage(index, file)}
+              />
             </div>
             <div className="flex flex-col gap-3">
-              <label className="font-bold">
-                Görsel URL’si
-                <input
-                  required
-                  placeholder="/products/... veya görsel URL’si"
-                  value={image.url}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      images: form.images.map((entry, entryIndex) =>
-                        entryIndex === index ? { ...entry, url: e.target.value } : entry
-                      ),
-                    })
-                  }
-                  className={`${input} mt-2`}
-                />
-              </label>
               <label className="font-bold">
                 Alt metin
                 <input
@@ -641,13 +777,7 @@ function ProductEditor({
             </div>
           </div>
         ))}
-        <button
-          type="button"
-          onClick={() => setForm({ ...form, images: [...form.images, { url: "", altText: "" }] })}
-          className="focus-ring mt-3 flex items-center gap-1 font-bold"
-        >
-          <Plus size={15} /> Görsel ekle
-        </button>
+        <ImageAddButton disabled={uploading} onSelect={addImage} />
       </section>
       <section className="border-t border-black/15 pt-6">
         <h3 className="font-bold">Varyantlar ve stok</h3>
@@ -790,6 +920,94 @@ function ProductEditor({
         <Save size={17} /> {saving ? "Kaydediliyor…" : "Değişiklikleri kaydet"}
       </button>
     </form>
+  );
+}
+
+function ImagePicker({
+  image,
+  productName,
+  disabled,
+  onSelect,
+}: {
+  image: ProductImage;
+  productName: string;
+  disabled: boolean;
+  onSelect: (file: File) => Promise<void>;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const chooseFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (file) await onSelect(file);
+  };
+
+  return (
+    <div className="aspect-square overflow-hidden bg-fog">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => inputRef.current?.click()}
+        className="group relative h-full w-full text-left disabled:cursor-wait"
+        aria-label={image.url ? "Görseli değiştir" : "Görsel seç"}
+      >
+        {image.url ? (
+          <img
+            src={image.url}
+            alt={image.altText || productName || "Ürün görseli"}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <span className="flex h-full items-center justify-center px-4 text-center text-sm font-semibold text-black/55">
+            Görsel seçmek için tıkla
+          </span>
+        )}
+        <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 bg-black/75 px-2 py-2 text-center text-xs font-bold text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+          <Upload size={14} /> {image.url ? "Görseli değiştir" : "Görsel seç"}
+        </span>
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/avif"
+        className="sr-only"
+        onChange={chooseFile}
+      />
+    </div>
+  );
+}
+
+function ImageAddButton({
+  disabled,
+  onSelect,
+}: {
+  disabled: boolean;
+  onSelect: (file: File) => Promise<void>;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const chooseFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (file) await onSelect(file);
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => inputRef.current?.click()}
+        className="focus-ring mt-3 flex items-center gap-1 font-bold disabled:cursor-wait disabled:opacity-50"
+      >
+        <Plus size={15} /> Bilgisayardan veya telefondan görsel yükle
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/avif"
+        className="sr-only"
+        onChange={chooseFile}
+      />
+    </>
   );
 }
 

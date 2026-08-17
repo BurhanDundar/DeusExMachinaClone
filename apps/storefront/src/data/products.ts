@@ -7,7 +7,7 @@ export type Product = {
   description: string;
   price: number;
   originalPrice?: number;
-  images: [string, string];
+  images: string[];
   category: string;
   categorySlug: string;
   collection: string;
@@ -353,7 +353,7 @@ function toProduct(product: CatalogProduct): Product {
       .map((variant) => variant.color)
       .filter((color): color is string => Boolean(color))
   );
-  const primaryImage = product.images[0]?.url ?? "/products/binks/koleksiyon-seti.jpeg";
+  const images = product.images.map((image) => image.url).filter(Boolean);
 
   return {
     id: product.id,
@@ -362,7 +362,7 @@ function toProduct(product: CatalogProduct): Product {
     description: product.description,
     price: product.price,
     originalPrice: product.compareAtPrice ?? undefined,
-    images: [primaryImage, product.images[1]?.url ?? primaryImage],
+    images: images.length ? images : ["/products/binks/koleksiyon-seti.jpeg"],
     category: product.category.name,
     categorySlug: product.category.slug,
     collection: product.category.name,

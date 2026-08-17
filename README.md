@@ -12,7 +12,7 @@ docker-compose.yml  Local PostgreSQL and backend services
 
 ## Requirements
 
-- Node.js 18.18+ (Node.js 22 LTS recommended)
+- Node.js 20+ (Node.js 22 LTS recommended)
 - npm 10+
 - Docker Desktop for the recommended backend setup
 - Java 17 and Maven 3.9+ only when running the backend outside Docker
@@ -48,6 +48,14 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000). The API runs on
 [http://localhost:8080](http://localhost:8080), and its health endpoint is
 `/actuator/health`.
+
+## Product image uploads
+
+The admin panel uploads product images directly from a phone or computer to Vercel Blob.
+In the Vercel project, create a **public** Blob store and add its generated
+`BLOB_READ_WRITE_TOKEN` to the storefront environment. For local development,
+put the same value in `apps/storefront/.env.local`. The token is server-only;
+do not expose it with a `NEXT_PUBLIC_` prefix.
 
 To run only PostgreSQL in Docker and the API directly on the host:
 

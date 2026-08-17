@@ -15,7 +15,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     <main>
       <div className="shell grid gap-8 py-8 md:grid-cols-2 md:py-14">
         <div className="grid gap-2 md:grid-cols-2">
-          {[...p.images, ...p.images].map((src, i) => (
+          {p.images.map((src, i) => (
             <div className="relative aspect-[4/5] bg-fog" key={i}>
               <Image
                 src={src}
