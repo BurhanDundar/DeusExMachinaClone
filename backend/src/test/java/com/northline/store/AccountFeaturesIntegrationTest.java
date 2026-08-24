@@ -151,6 +151,30 @@ class AccountFeaturesIntegrationTest {
   }
 
   @Test
+  void repeatedPasswordResetRequestsAreRateLimited() throws Exception {
+    registerAndGetAccessToken("reset-limit@example.com");
+    when(emailService.isConfigured()).thenReturn(true);
+
+    for (var attempt = 0; attempt < 5; attempt++) {
+      mvc
+        .perform(
+          post("/api/auth/password/forgot")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"email\":\"reset-limit@example.com\"}")
+        )
+        .andExpect(status().isNoContent());
+    }
+    mvc
+      .perform(
+        post("/api/auth/password/forgot")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content("{\"email\":\"reset-limit@example.com\"}")
+      )
+      .andExpect(status().isTooManyRequests())
+      .andExpect(jsonPath("$.code").value("PASSWORD_RESET_RATE_LIMITED"));
+  }
+
+  @Test
   @WithMockUser(roles = "ADMIN")
   void newsletterSubscriptionIsStoredAndVisibleToAdministrator() throws Exception {
     mvc
@@ -164,6 +188,21 @@ class AccountFeaturesIntegrationTest {
       .perform(get("/api/admin/newsletter/subscribers"))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$[0].email").value("news@example.com"));
+
+    var unsubscribeToken = subscribers
+      .findByEmailIgnoreCase("news@example.com")
+      .orElseThrow()
+      .getUnsubscribeToken();
+    mvc
+      .perform(delete("/api/newsletter/subscriptions/{token}", unsubscribeToken))
+      .andExpect(status().isNoContent());
+    mvc
+      .perform(delete("/api/newsletter/subscriptions/{token}", unsubscribeToken))
+      .andExpect(status().isNoContent());
+    mvc
+      .perform(get("/api/admin/newsletter/subscribers"))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$[0].active").value(false));
   }
 
   private String registerAndGetAccessToken(String email) throws Exception {

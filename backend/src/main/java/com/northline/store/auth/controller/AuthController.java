@@ -6,13 +6,17 @@ import com.northline.store.auth.dto.LoginRequest;
 import com.northline.store.auth.dto.RegisterRequest;
 import com.northline.store.auth.dto.ResetPasswordRequest;
 import com.northline.store.auth.service.AuthService;
+import com.northline.store.auth.service.LoginAttemptLimiter;
 import com.northline.store.auth.service.PasswordResetService;
+import com.northline.store.user.entity.User;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,17 +26,20 @@ public class AuthController {
   public static final String REFRESH_COOKIE = "northline_refresh";
   private final AuthService authService;
   private final PasswordResetService passwordResetService;
+  private final LoginAttemptLimiter loginAttempts;
   private final boolean secureCookie;
   private final String sameSite;
 
   public AuthController(
     AuthService authService,
     PasswordResetService passwordResetService,
+    LoginAttemptLimiter loginAttempts,
     @Value("${app.cookie.secure}") boolean secureCookie,
     @Value("${app.cookie.same-site}") String sameSite
   ) {
     this.authService = authService;
     this.passwordResetService = passwordResetService;
+    this.loginAttempts = loginAttempts;
     this.secureCookie = secureCookie;
     this.sameSite = sameSite;
   }
@@ -43,8 +50,20 @@ public class AuthController {
   }
 
   @PostMapping("/login")
-  ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-    return sessionResponse(authService.login(request));
+  ResponseEntity<AuthResponse> login(
+    @Valid @RequestBody LoginRequest request,
+    HttpServletRequest httpRequest
+  ) {
+    var key = httpRequest.getRemoteAddr() + ":" + User.normalizeEmail(request.email());
+    loginAttempts.check(key);
+    try {
+      var result = authService.login(request);
+      loginAttempts.succeeded(key);
+      return sessionResponse(result);
+    } catch (AuthenticationException exception) {
+      loginAttempts.failed(key);
+      throw exception;
+    }
   }
 
   @PostMapping("/refresh")
@@ -65,7 +84,18 @@ public class AuthController {
   }
 
   @PostMapping("/password/forgot")
-  ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+  ResponseEntity<Void> forgotPassword(
+    @Valid @RequestBody ForgotPasswordRequest request,
+    HttpServletRequest httpRequest
+  ) {
+    var key =
+      "password-reset:" + httpRequest.getRemoteAddr() + ":" + User.normalizeEmail(request.email());
+    loginAttempts.check(
+      key,
+      "PASSWORD_RESET_RATE_LIMITED",
+      "Çok sayıda şifre sıfırlama isteği gönderildi. Lütfen daha sonra tekrar deneyin."
+    );
+    loginAttempts.failed(key);
     passwordResetService.request(request);
     return ResponseEntity.noContent().build();
   }

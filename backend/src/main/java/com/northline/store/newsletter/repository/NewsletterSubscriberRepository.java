@@ -9,4 +9,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface NewsletterSubscriberRepository extends JpaRepository<NewsletterSubscriber, UUID> {
   Optional<NewsletterSubscriber> findByEmailIgnoreCase(String email);
   List<NewsletterSubscriber> findAllByOrderBySubscribedAtDesc();
+  Optional<NewsletterSubscriber> findByUnsubscribeToken(String unsubscribeToken);
 }

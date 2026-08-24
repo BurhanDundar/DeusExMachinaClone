@@ -19,6 +19,16 @@ export type Product = {
   badge?: string;
   inventoryStatus: InventoryStatus;
   featured: boolean;
+  variants?: ProductOption[];
+};
+
+export type ProductOption = {
+  id: string;
+  title: string;
+  color: string | null;
+  size: string | null;
+  price: number | null;
+  available: boolean;
 };
 
 type CatalogProduct = {
@@ -33,9 +43,11 @@ type CatalogProduct = {
   featured: boolean;
   images: Array<{ url: string }>;
   variants: Array<{
+    id: string;
     title: string;
     color: string | null;
     size: string | null;
+    price: number | null;
     available: boolean;
   }>;
 };
@@ -379,6 +391,14 @@ function toProduct(product: CatalogProduct): Product {
     badge: product.badge ?? (availableSizes.length ? undefined : "TÜKENDİ"),
     inventoryStatus: availableSizes.length ? "available" : "sold-out",
     featured: product.featured,
+    variants: product.variants.map((variant) => ({
+      id: variant.id,
+      title: variant.title,
+      color: variant.color,
+      size: variant.size,
+      price: variant.price,
+      available: variant.available,
+    })),
   };
 }
 

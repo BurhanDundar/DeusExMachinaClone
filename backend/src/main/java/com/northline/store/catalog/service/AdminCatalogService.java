@@ -14,6 +14,7 @@ import com.northline.store.catalog.entity.ProductVariant;
 import com.northline.store.catalog.repository.CategoryRepository;
 import com.northline.store.catalog.repository.ProductRepository;
 import com.northline.store.common.exception.ApiException;
+import com.northline.store.order.repository.OrderItemRepository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,10 +29,16 @@ public class AdminCatalogService {
 
   private final CategoryRepository categories;
   private final ProductRepository products;
+  private final OrderItemRepository orderItems;
 
-  public AdminCatalogService(CategoryRepository categories, ProductRepository products) {
+  public AdminCatalogService(
+    CategoryRepository categories,
+    ProductRepository products,
+    OrderItemRepository orderItems
+  ) {
     this.categories = categories;
     this.products = products;
+    this.orderItems = orderItems;
   }
 
   @Transactional(readOnly = true)
@@ -136,6 +143,20 @@ public class AdminCatalogService {
     var requestedIds = requestedIds(
       requests.stream().map(ProductVariantUpsertRequest::id).toList()
     );
+    var variantsToRemove = product
+      .getVariants()
+      .stream()
+      .filter(variant -> !requestedIds.contains(variant.getId()))
+      .toList();
+    if (
+      variantsToRemove.stream().anyMatch(variant -> orderItems.existsByVariantId(variant.getId()))
+    ) {
+      throw new ApiException(
+        "ORDERED_VARIANT_CANNOT_BE_DELETED",
+        "Daha önce sipariş edilmiş bir ürün seçeneği silinemez. Satışı kapat seçeneğini kullanın.",
+        HttpStatus.CONFLICT
+      );
+    }
     var removed = product
       .getVariants()
       .removeIf(variant -> !requestedIds.contains(variant.getId()));
@@ -189,6 +210,13 @@ public class AdminCatalogService {
   }
 
   private void applyVariant(ProductVariant variant, ProductVariantUpsertRequest request) {
+    if (request.stockQuantity() < variant.getReservedQuantity()) {
+      throw new ApiException(
+        "STOCK_BELOW_RESERVED",
+        "Stok miktarı bekleyen siparişler için ayrılan miktarın altına indirilemez.",
+        HttpStatus.CONFLICT
+      );
+    }
     variant.setTitle(request.title().trim());
     variant.setSku(request.sku().trim().toUpperCase(java.util.Locale.ROOT));
     variant.setColor(blankToNull(request.color()));

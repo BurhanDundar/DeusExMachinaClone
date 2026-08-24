@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Globe2 } from "lucide-react";
 import { Newsletter } from "@/components/home/Newsletter";
 import { aboutLinks, legalLinks, supportLinks } from "@/data/navigation";
+import { storeInfo } from "@/lib/store-info";
 
 const groups = [
   { title: "Destek", links: supportLinks },
@@ -35,7 +36,9 @@ export function Footer() {
         </div>
       </div>
       <div className="flex flex-col gap-4 bg-[#e6e5e1] px-6 pb-8 text-xs md:flex-row md:justify-between md:px-12">
-        <span>© 2026 Northline Supply. Tüm hakları saklıdır.</span>
+        <span>
+          © {new Date().getFullYear()} {storeInfo.brandName}. Tüm hakları saklıdır.
+        </span>
         <span className="flex gap-3">
           <Link href="/privacy">Gizlilik</Link>
           <Link href="/terms">Koşullar</Link>

@@ -76,6 +76,39 @@ type NewsletterSubscriber = {
   subscribedAt: string;
 };
 
+type AdminOrder = {
+  id: string;
+  orderNumber: string;
+  status: string;
+  paymentStatus: string;
+  total: number;
+  customerEmail: string;
+  firstName: string;
+  lastName: string;
+  city: string;
+  createdAt: string;
+  shippingCarrier: string | null;
+  trackingNumber: string | null;
+  reservationExpiresAt: string | null;
+  items: Array<{ productName: string; optionTitle: string; quantity: number }>;
+};
+
+const orderStatusLabels: Record<string, string> = {
+  PAYMENT_PENDING: "Ödeme bekleniyor",
+  CONFIRMED: "Onaylandı",
+  PREPARING: "Hazırlanıyor",
+  SHIPPED: "Kargoya verildi",
+  DELIVERED: "Teslim edildi",
+  CANCELLED: "İptal edildi",
+};
+
+const paymentStatusLabels: Record<string, string> = {
+  PENDING: "Ödeme bekleniyor",
+  PAID: "Ödendi",
+  FAILED: "Başarısız",
+  REFUNDED: "İade edildi",
+};
+
 const statuses: ProductForm["status"][] = ["DRAFT", "ACTIVE", "ARCHIVED"];
 const statusLabels: Record<ProductForm["status"], string> = {
   DRAFT: "Taslak",
@@ -126,10 +159,11 @@ function formFromProduct(product: AdminProduct): ProductForm {
 export default function AdminPage() {
   const router = useRouter();
   const { user, accessToken, loading, authenticatedFetch } = useAuth();
-  const [tab, setTab] = useState<"products" | "categories" | "newsletter">("products");
+  const [tab, setTab] = useState<"products" | "categories" | "orders" | "newsletter">("products");
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([]);
+  const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [productForm, setProductForm] = useState<ProductForm | null>(null);
   const [categoryForm, setCategoryForm] = useState<AdminCategory | null>(null);
@@ -159,12 +193,14 @@ export default function AdminPage() {
       latestAuthenticatedFetch.current<AdminProduct[]>("/api/admin/catalog/products"),
       latestAuthenticatedFetch.current<AdminCategory[]>("/api/admin/catalog/categories"),
       latestAuthenticatedFetch.current<NewsletterSubscriber[]>("/api/admin/newsletter/subscribers"),
+      latestAuthenticatedFetch.current<AdminOrder[]>("/api/admin/orders"),
     ])
-      .then(([nextProducts, nextCategories, nextSubscribers]) => {
+      .then(([nextProducts, nextCategories, nextSubscribers, nextOrders]) => {
         if (!active) return;
         setProducts(nextProducts);
         setCategories(nextCategories);
         setSubscribers(nextSubscribers);
+        setOrders(nextOrders);
       })
       .catch((error) => {
         if (!active) return;
@@ -202,14 +238,16 @@ export default function AdminPage() {
   }
 
   async function reload() {
-    const [nextProducts, nextCategories, nextSubscribers] = await Promise.all([
+    const [nextProducts, nextCategories, nextSubscribers, nextOrders] = await Promise.all([
       authenticatedFetch<AdminProduct[]>("/api/admin/catalog/products"),
       authenticatedFetch<AdminCategory[]>("/api/admin/catalog/categories"),
       authenticatedFetch<NewsletterSubscriber[]>("/api/admin/newsletter/subscribers"),
+      authenticatedFetch<AdminOrder[]>("/api/admin/orders"),
     ]);
     setProducts(nextProducts);
     setCategories(nextCategories);
     setSubscribers(nextSubscribers);
+    setOrders(nextOrders);
   }
 
   async function deleteStoredImages(urls: string[]) {
@@ -345,6 +383,30 @@ export default function AdminPage() {
     }
   }
 
+  async function updateOrder(
+    orderId: string,
+    body: { status: string; shippingCarrier?: string; trackingNumber?: string }
+  ) {
+    setSaving(true);
+    setNotification(null);
+    try {
+      await authenticatedFetch(`/api/admin/orders/${orderId}/fulfillment`, {
+        method: "PUT",
+        body: JSON.stringify(body),
+      });
+      await reload();
+      setNotification({ tone: "success", text: "Sipariş durumu güncellendi." });
+    } catch (error) {
+      setNotification({
+        tone: "error",
+        text: error instanceof ApiError ? error.message : "Sipariş güncellenemedi.",
+      });
+      throw error;
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-paper px-4 py-8 sm:px-8 lg:px-12">
       {notification && (
@@ -361,13 +423,19 @@ export default function AdminPage() {
           </p>
         </header>
         <nav className="mt-6 flex gap-2" aria-label="Yönetim bölümleri">
-          {(["products", "categories", "newsletter"] as const).map((item) => (
+          {(["products", "categories", "orders", "newsletter"] as const).map((item) => (
             <button
               key={item}
               onClick={() => setTab(item)}
               className={`focus-ring px-4 py-2 font-bold ${tab === item ? "bg-black text-white" : "border border-black"}`}
             >
-              {item === "products" ? "Ürünler" : item === "categories" ? "Kategoriler" : "Bülten"}
+              {item === "products"
+                ? "Ürünler"
+                : item === "categories"
+                  ? "Kategoriler"
+                  : item === "orders"
+                    ? "Siparişler"
+                    : "Bülten"}
             </button>
           ))}
         </nav>
@@ -492,6 +560,84 @@ export default function AdminPage() {
               />
             )}
           </div>
+        ) : tab === "orders" ? (
+          <section className="mt-8">
+            <div className="mb-5 flex items-end justify-between gap-5 border-b border-black/20 pb-4">
+              <div>
+                <h2 className="display text-3xl">Siparişler</h2>
+                <p className="mt-1 text-sm text-black/65">
+                  Ödeme ve hazırlık durumlarını takip et.
+                </p>
+              </div>
+              <span className="font-bold">{orders.length} sipariş</span>
+            </div>
+            {orders.length ? (
+              <div className="overflow-x-auto border border-black/20 bg-white">
+                <table className="w-full min-w-[900px] text-left">
+                  <thead className="border-b border-black/20 bg-fog">
+                    <tr>
+                      <th className="p-4">Sipariş</th>
+                      <th className="p-4">Müşteri</th>
+                      <th className="p-4">Ürünler</th>
+                      <th className="p-4">Durum</th>
+                      <th className="p-4">İşlem</th>
+                      <th className="p-4">Toplam</th>
+                      <th className="p-4">Tarih</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-black/10">
+                    {orders.map((order) => (
+                      <tr key={order.id}>
+                        <td className="p-4 font-bold">{order.orderNumber}</td>
+                        <td className="p-4">
+                          <strong className="block">
+                            {order.firstName} {order.lastName}
+                          </strong>
+                          <span className="text-sm text-black/60">
+                            {order.customerEmail} · {order.city}
+                          </span>
+                        </td>
+                        <td className="p-4 text-sm">
+                          {order.items
+                            .map(
+                              (item) =>
+                                `${item.productName} (${item.optionTitle}) × ${item.quantity}`
+                            )
+                            .join(", ")}
+                        </td>
+                        <td className="p-4">
+                          <strong className="block">
+                            {orderStatusLabels[order.status] ?? order.status}
+                          </strong>
+                          <span className="text-sm text-black/60">
+                            {paymentStatusLabels[order.paymentStatus] ?? order.paymentStatus}
+                          </span>
+                          {order.trackingNumber && (
+                            <span className="mt-1 block text-xs text-black/60">
+                              {order.shippingCarrier}: {order.trackingNumber}
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          <OrderActions order={order} disabled={saving} onUpdate={updateOrder} />
+                        </td>
+                        <td className="p-4 font-bold">{formatPrice(order.total)}</td>
+                        <td className="p-4">
+                          {new Intl.DateTimeFormat("tr-TR", {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                            timeZone: "Europe/Istanbul",
+                          }).format(new Date(order.createdAt))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="border-y border-black/15 py-10">Henüz sipariş yok.</p>
+            )}
+          </section>
         ) : (
           <section className="mt-8 max-w-4xl">
             <div className="mb-5 flex items-end justify-between gap-5 border-b border-black/20 pb-4">
@@ -1143,6 +1289,113 @@ function ImageAddButton({
       />
     </>
   );
+}
+
+function OrderActions({
+  order,
+  disabled,
+  onUpdate,
+}: {
+  order: AdminOrder;
+  disabled: boolean;
+  onUpdate: (
+    orderId: string,
+    body: { status: string; shippingCarrier?: string; trackingNumber?: string }
+  ) => Promise<void>;
+}) {
+  const [shippingCarrier, setShippingCarrier] = useState(order.shippingCarrier ?? "");
+  const [trackingNumber, setTrackingNumber] = useState(order.trackingNumber ?? "");
+  const buttonClass =
+    "focus-ring whitespace-nowrap border border-black bg-black px-3 py-2 text-xs font-bold text-white disabled:cursor-wait disabled:opacity-50";
+
+  async function submit(status: string) {
+    try {
+      await onUpdate(order.id, {
+        status,
+        shippingCarrier: shippingCarrier.trim() || undefined,
+        trackingNumber: trackingNumber.trim() || undefined,
+      });
+    } catch {
+      // Üst bileşen kullanıcıya ayrıntılı hata bildirimini gösterir.
+    }
+  }
+
+  if (order.status === "PAYMENT_PENDING") {
+    return (
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => {
+          if (window.confirm("Bekleyen sipariş iptal edilsin mi? Ayrılan stok geri açılır.")) {
+            void submit("CANCELLED");
+          }
+        }}
+        className={buttonClass}
+      >
+        Siparişi iptal et
+      </button>
+    );
+  }
+
+  if (order.status === "CONFIRMED") {
+    return (
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => void submit("PREPARING")}
+        className={buttonClass}
+      >
+        Hazırlamaya başla
+      </button>
+    );
+  }
+
+  if (order.status === "PREPARING") {
+    return (
+      <div className="min-w-48 space-y-2">
+        <label className="block text-xs font-bold">
+          Kargo firması
+          <input
+            value={shippingCarrier}
+            onChange={(event) => setShippingCarrier(event.target.value)}
+            placeholder="Örn. Yurtiçi Kargo"
+            className="mt-1 w-full border border-black/30 px-2 py-2 font-normal"
+          />
+        </label>
+        <label className="block text-xs font-bold">
+          Takip numarası
+          <input
+            value={trackingNumber}
+            onChange={(event) => setTrackingNumber(event.target.value)}
+            className="mt-1 w-full border border-black/30 px-2 py-2 font-normal"
+          />
+        </label>
+        <button
+          type="button"
+          disabled={disabled || !shippingCarrier.trim() || !trackingNumber.trim()}
+          onClick={() => void submit("SHIPPED")}
+          className={buttonClass}
+        >
+          Kargoya ver
+        </button>
+      </div>
+    );
+  }
+
+  if (order.status === "SHIPPED") {
+    return (
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => void submit("DELIVERED")}
+        className={buttonClass}
+      >
+        Teslim edildi
+      </button>
+    );
+  }
+
+  return <span className="text-xs text-black/50">İşlem yok</span>;
 }
 
 function CategoryEditor({

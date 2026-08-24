@@ -1,11 +1,16 @@
-# Checkout boundary (future milestone)
+# Checkout boundary
 
-Checkout is deliberately not implemented in Milestone 1. Its service boundary
-will authenticate the user, load the server cart, recalculate prices, acquire
-inventory under a pessimistic row lock, create reservations and a
-`PENDING_PAYMENT` order in one transaction, then invoke `PaymentProvider`.
+Checkout authenticates the user, reloads authoritative variant prices, acquires
+inventory under a pessimistic row lock, reserves stock and creates an idempotent
+`PAYMENT_PENDING` order in one transaction. Product names, SKU values, prices
+and the delivery address are snapshotted into the order.
 
-Verified callbacks will be idempotent by provider event/reference and order
-state. Successful verification marks the order paid, consumes reservations,
-clears the purchased cart and schedules email. Failure or expiry releases stock.
-Visiting `/checkout/success` will never mutate payment state.
+The server calculates the flat shipping fee and free-shipping threshold; client
+amounts are never trusted. Reservations expire automatically (30 minutes by
+default), and repeated draft creation is rate-limited.
+
+The iyzico adapter is the next step. Verified callbacks must be idempotent by
+provider reference and order state. Successful verification marks the order
+paid and consumes reservations. Failure or expiry releases stock.
+Any future `/checkout/success` page must remain display-only and must never mutate
+payment state. The manual admin “mark paid” endpoint has intentionally been removed.

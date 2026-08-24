@@ -69,12 +69,29 @@ erDiagram
     uuid product_id FK
     varchar sku UK
     int stock_quantity
+    int reserved_quantity
   }
   NEWSLETTER_SUBSCRIBERS {
     uuid id PK
     varchar email UK
     boolean active
     timestamptz consent_at
+  }
+  ORDERS {
+    uuid id PK
+    uuid user_id FK
+    varchar order_number UK
+    varchar status
+    varchar payment_status
+    numeric total
+  }
+  ORDER_ITEMS {
+    uuid id PK
+    uuid order_id FK
+    uuid variant_id FK
+    varchar sku
+    int quantity
+    numeric unit_price
   }
 ```
 
@@ -83,5 +100,6 @@ digests are uniquely indexed for constant-time lookup. Expiry and revocation are
 stored separately to support rotation and auditability. Application-generated
 UUIDs avoid sequential public identifiers and database-extension requirements.
 
-Future migrations add Cart/CartItem, Order/OrderItem, StockReservation and
-Payment without changing the existing authentication or catalog tables.
+Order and item snapshots are introduced in V7. Variant `reserved_quantity`
+separates temporarily held inventory from sold stock. A future migration can
+add persisted payment events and server carts without changing order history.

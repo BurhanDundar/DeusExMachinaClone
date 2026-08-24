@@ -12,6 +12,7 @@ public record ProductVariantResponse(
   String size,
   BigDecimal price,
   int stockQuantity,
+  int availableQuantity,
   boolean active,
   boolean available
 ) {
@@ -24,8 +25,9 @@ public record ProductVariantResponse(
       variant.getSize(),
       variant.getPrice(),
       variant.getStockQuantity(),
+      Math.max(0, variant.getStockQuantity() - variant.getReservedQuantity()),
       variant.isActive(),
-      variant.isActive() && variant.getStockQuantity() > 0
+      variant.isActive() && variant.getStockQuantity() - variant.getReservedQuantity() > 0
     );
   }
 }

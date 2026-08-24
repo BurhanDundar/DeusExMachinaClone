@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useAuth } from "@/auth/AuthProvider";
 import { ApiError } from "@/lib/api";
 
@@ -11,6 +11,14 @@ export default function Login() {
   const { login } = useAuth();
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [nextPath, setNextPath] = useState("");
+
+  useEffect(() => {
+    const requestedPath = new URLSearchParams(window.location.search).get("next");
+    if (requestedPath?.startsWith("/") && !requestedPath.startsWith("//")) {
+      setNextPath(requestedPath);
+    }
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -19,7 +27,7 @@ export default function Login() {
     const data = new FormData(event.currentTarget);
     try {
       await login(String(data.get("email")), String(data.get("password")));
-      router.replace("/account");
+      router.replace(nextPath || "/account");
     } catch (cause) {
       setError(cause instanceof ApiError ? cause.message : "Şu anda giriş yapılamıyor.");
     } finally {
@@ -64,7 +72,14 @@ export default function Login() {
         </button>
       </form>
       <div className="mt-6 flex justify-between text-sm">
-        <Link href="/account/register" className="underline">
+        <Link
+          href={
+            nextPath
+              ? `/account/register?next=${encodeURIComponent(nextPath)}`
+              : "/account/register"
+          }
+          className="underline"
+        >
           Hesap oluştur
         </Link>
         <Link href="/account/forgot-password" className="underline">

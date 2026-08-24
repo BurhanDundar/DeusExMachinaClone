@@ -2,10 +2,21 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
-import { Check, CircleHelp, LockKeyhole, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { CircleHelp, LockKeyhole, Search } from "lucide-react";
 import { useUIStore } from "@/store/ui-store";
 import { CURRENCY_LABEL, formatPrice } from "@/lib/currency";
+import { useAuth } from "@/auth/AuthProvider";
+import { apiRequest, ApiError } from "@/lib/api";
+
+type CheckoutConfig = {
+  shippingFlatFee: number;
+  freeShippingThreshold: number;
+  reservationMinutes: number;
+};
+
+type CreatedOrder = { id: string; orderNumber: string; reservationExpiresAt: string | null };
 
 const inputClass =
   "mt-2 h-12 w-full rounded-xl border border-black/15 bg-white px-3 text-sm outline-none placeholder:text-black/55 focus:border-black";
@@ -28,21 +39,81 @@ function Field({
 }
 
 export default function CheckoutPage() {
+  const router = useRouter();
+  const { user, authenticatedFetch } = useAuth();
   const items = useUIStore((state) => state.items);
-  const [payment, setPayment] = useState<"card" | "paypal" | "klarna">("card");
   const [terms, setTerms] = useState(false);
   const [notice, setNotice] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [createdOrder, setCreatedOrder] = useState<CreatedOrder | null>(null);
+  const [checkoutConfig, setCheckoutConfig] = useState<CheckoutConfig | null>(null);
+  const clientReference = useRef("");
   const subtotal = useMemo(
     () => items.reduce((total, item) => total + item.product.price * item.quantity, 0),
     [items]
   );
   const count = items.reduce((total, item) => total + item.quantity, 0);
+  const shipping = checkoutConfig
+    ? subtotal >= checkoutConfig.freeShippingThreshold
+      ? 0
+      : checkoutConfig.shippingFlatFee
+    : 0;
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    apiRequest<CheckoutConfig>("/api/checkout/config")
+      .then(setCheckoutConfig)
+      .catch(() => setNotice("Kargo ücreti şu anda alınamadı. Lütfen sayfayı yenileyin."));
+  }, []);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setNotice(
-      "Çevrimiçi ödeme sistemi henüz bağlı değil. Kart bilgileriniz gönderilmedi veya kaydedilmedi."
-    );
+    if (!user) {
+      router.push("/account/login?next=%2Fcheckout");
+      return;
+    }
+    const orderItems = items.map((item) => ({
+      variantId:
+        item.variantId ??
+        item.product.variants?.find(
+          (variant) => (variant.size ?? variant.title) === item.size && variant.available
+        )?.id,
+      quantity: item.quantity,
+    }));
+    if (orderItems.some((item) => !item.variantId)) {
+      setNotice("Sepette eski bir ürün kaydı var. Ürünü sepetten çıkarıp yeniden ekleyin.");
+      return;
+    }
+    setCreating(true);
+    setNotice("");
+    const fields = new FormData(event.currentTarget);
+    clientReference.current ||= crypto.randomUUID();
+    try {
+      const order = await authenticatedFetch<CreatedOrder>("/api/orders", {
+        method: "POST",
+        body: JSON.stringify({
+          clientReference: clientReference.current,
+          items: orderItems,
+          email: fields.get("email"),
+          firstName: fields.get("firstName"),
+          lastName: fields.get("lastName"),
+          phone: fields.get("phone"),
+          addressLine1: fields.get("addressLine1"),
+          addressLine2: fields.get("addressLine2"),
+          district: fields.get("district"),
+          city: fields.get("city"),
+          postalCode: fields.get("postalCode"),
+          country: "Türkiye",
+        }),
+      });
+      setCreatedOrder(order);
+      setNotice(
+        `${order.orderNumber} numaralı sipariş hazırlandı. Ürünler ödeme süresi boyunca sizin için ayrıldı.`
+      );
+    } catch (error) {
+      setNotice(error instanceof ApiError ? error.message : "Sipariş oluşturulamadı.");
+    } finally {
+      setCreating(false);
+    }
   }
 
   if (!items.length)
@@ -67,40 +138,21 @@ export default function CheckoutPage() {
       >
         <div className="space-y-9">
           <section>
-            <p className="mb-4 text-center text-sm text-black/55">Hızlı ödeme</p>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                className="h-12 rounded-xl bg-[#5a31f4] text-lg font-bold text-white"
-              >
-                shop
-              </button>
-              <button
-                type="button"
-                className="h-12 rounded-xl bg-[#ffc439] text-lg font-bold italic text-[#003087]"
-              >
-                PayPal
-              </button>
-              <button type="button" className="h-12 rounded-xl bg-black font-bold text-white">
-                <span className="text-[#4285f4]">G</span> Pay
-              </button>
-            </div>
-            <div className="my-7 flex items-center gap-4 text-xs text-black/55 before:h-px before:flex-1 before:bg-black/15 after:h-px after:flex-1 after:bg-black/15">
-              VEYA
-            </div>
-          </section>
-          <section>
             <div className="mb-3 flex items-center justify-between">
               <h1 className="text-xl font-bold">İletişim</h1>
-              <Link className="underline" href="/account/login">
-                Giriş yap
-              </Link>
+              {!user && (
+                <Link className="underline" href="/account/login?next=%2Fcheckout">
+                  Giriş yap
+                </Link>
+              )}
             </div>
             <Field label="E-posta">
               <div className="relative">
                 <input
                   className={inputClass}
                   type="email"
+                  name="email"
+                  defaultValue={user?.email ?? ""}
                   autoComplete="email"
                   placeholder="E-posta"
                   required
@@ -108,24 +160,25 @@ export default function CheckoutPage() {
                 <CircleHelp className="absolute right-3 top-5 text-black/55" size={16} />
               </div>
             </Field>
-            <label className="mt-3 flex items-center gap-2 text-sm">
-              <input
-                className="size-[19px] appearance-none rounded-md border border-black/15 checked:border-black checked:bg-black"
-                type="checkbox"
-              />
-              <Check className="-ml-[22px] pointer-events-none text-white" size={14} />
-              <span className="ml-1">Haber ve kampanyaları e-postayla gönder</span>
-            </label>
           </section>
           <section>
             <h2 className="mb-3 text-xl font-bold">Teslimat</h2>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Ad">
-                <input className={inputClass} autoComplete="given-name" placeholder="Ad" required />
+                <input
+                  className={inputClass}
+                  name="firstName"
+                  defaultValue={user?.firstName ?? ""}
+                  autoComplete="given-name"
+                  placeholder="Ad"
+                  required
+                />
               </Field>
               <Field label="Soyad">
                 <input
                   className={inputClass}
+                  name="lastName"
+                  defaultValue={user?.lastName ?? ""}
                   autoComplete="family-name"
                   placeholder="Soyad"
                   required
@@ -136,6 +189,7 @@ export default function CheckoutPage() {
               <div className="relative">
                 <input
                   className={inputClass}
+                  name="addressLine1"
                   autoComplete="street-address"
                   placeholder="Adres"
                   required
@@ -143,10 +197,19 @@ export default function CheckoutPage() {
                 <Search className="absolute right-3 top-5 text-black/55" size={16} />
               </div>
             </Field>
+            <Field label="Daire, bina veya adres tarifi" className="mt-3">
+              <input
+                className={inputClass}
+                name="addressLine2"
+                autoComplete="address-line2"
+                placeholder="Daire, bina veya adres tarifi (isteğe bağlı)"
+              />
+            </Field>
             <div className="mt-3 grid grid-cols-2 gap-3">
               <Field label="Posta kodu">
                 <input
                   className={inputClass}
+                  name="postalCode"
                   autoComplete="postal-code"
                   placeholder="Posta kodu"
                   required
@@ -155,16 +218,28 @@ export default function CheckoutPage() {
               <Field label="Şehir">
                 <input
                   className={inputClass}
+                  name="city"
                   autoComplete="address-level2"
                   placeholder="Şehir"
                   required
                 />
               </Field>
             </div>
+            <Field label="İlçe" className="mt-3">
+              <input
+                className={inputClass}
+                name="district"
+                autoComplete="address-level3"
+                placeholder="İlçe"
+                required
+              />
+            </Field>
             <Field label="Telefon" className="mt-3">
               <div className="relative">
                 <input
                   className={inputClass}
+                  name="phone"
+                  defaultValue={user?.phone ?? ""}
                   type="tel"
                   autoComplete="tel"
                   placeholder="Telefon"
@@ -176,90 +251,31 @@ export default function CheckoutPage() {
           </section>
           <section>
             <h2 className="text-xl font-bold">Kargo yöntemi</h2>
-            <div className="mt-3 rounded-xl bg-black/[.045] px-5 py-4 text-center text-sm text-black/55">
-              Kullanılabilir kargo yöntemlerini görmek için teslimat adresinizi girin.
+            <div className="mt-3 flex justify-between rounded-xl border border-black/15 px-5 py-4 text-sm">
+              <span>Standart teslimat</span>
+              <strong>
+                {!checkoutConfig
+                  ? "Hesaplanıyor…"
+                  : shipping === 0
+                    ? "Ücretsiz"
+                    : formatPrice(shipping)}
+              </strong>
             </div>
+            {checkoutConfig && shipping > 0 && (
+              <p className="mt-2 text-xs text-black/60">
+                {formatPrice(checkoutConfig.freeShippingThreshold)} ve üzeri siparişlerde kargo
+                ücretsizdir.
+              </p>
+            )}
           </section>
           <section>
             <h2 className="text-xl font-bold">Ödeme</h2>
-            <p className="mt-1 text-sm text-black/55">Tüm işlemler güvenli ve şifrelidir.</p>
-            <div className="mt-3 overflow-hidden rounded-xl border border-black">
-              <label className="flex h-13 items-center justify-between border-b border-black px-4 py-3">
-                <span className="flex items-center gap-3 font-semibold">
-                  <input
-                    checked={payment === "card"}
-                    onChange={() => setPayment("card")}
-                    type="radio"
-                    name="payment"
-                  />
-                  Kredi veya banka kartı
-                </span>
-                <span className="flex gap-1 text-[10px] font-bold">
-                  <i className="rounded bg-blue-700 px-1 py-0.5 not-italic text-white">VISA</i>
-                  <i className="rounded bg-red-500 px-1 py-0.5 not-italic text-white">MC</i>
-                </span>
-              </label>
-              {payment === "card" && (
-                <div className="bg-black/[.035] p-4">
-                  <Field label="Kart numarası">
-                    <div className="relative">
-                      <input
-                        className={inputClass}
-                        placeholder="Kart numarası"
-                        inputMode="numeric"
-                      />
-                      <LockKeyhole className="absolute right-3 top-5 text-black/55" size={16} />
-                    </div>
-                  </Field>
-                  <div className="mt-3 grid grid-cols-2 gap-3">
-                    <Field label="Son kullanma tarihi">
-                      <input
-                        className={inputClass}
-                        placeholder="Son kullanma tarihi (AA / YY)"
-                        inputMode="numeric"
-                      />
-                    </Field>
-                    <Field label="Güvenlik kodu">
-                      <input
-                        className={inputClass}
-                        placeholder="Güvenlik kodu"
-                        inputMode="numeric"
-                      />
-                    </Field>
-                  </div>
-                  <Field label="Kart üzerindeki ad" className="mt-3">
-                    <input className={inputClass} placeholder="Kart üzerindeki ad" />
-                  </Field>
-                  <label className="mt-4 flex items-center gap-2 text-sm">
-                    <input type="checkbox" defaultChecked />
-                    Teslimat adresini fatura adresi olarak kullan
-                  </label>
-                </div>
-              )}
-              <label className="flex items-center justify-between border-t border-black/15 px-4 py-4">
-                <span>
-                  <input
-                    checked={payment === "paypal"}
-                    onChange={() => setPayment("paypal")}
-                    type="radio"
-                    name="payment"
-                  />{" "}
-                  <b className="ml-2">PayPal</b>
-                </span>
-                <b className="italic text-[#003087]">PayPal</b>
-              </label>
-              <label className="flex items-center justify-between border-t border-black/15 px-4 py-4">
-                <span>
-                  <input
-                    checked={payment === "klarna"}
-                    onChange={() => setPayment("klarna")}
-                    type="radio"
-                    name="payment"
-                  />{" "}
-                  <b className="ml-2">Klarna ile öde</b>
-                </span>
-                <b className="rounded bg-pink-300 px-1 text-xs">Klarna</b>
-              </label>
+            <div className="mt-3 flex items-start gap-3 rounded-xl border border-black/15 bg-black/[.035] p-4">
+              <LockKeyhole className="mt-0.5 shrink-0" size={20} />
+              <p className="text-sm leading-6">
+                Kart bilgileri bu siteye girilmeyecek. Ödeme, iyzico’nun güvenli ödeme sayfasında
+                tamamlanacak.
+              </p>
             </div>
           </section>
           <section>
@@ -276,30 +292,29 @@ export default function CheckoutPage() {
                 Hizmet Koşulları.
               </a>
             </label>
-            <div className="mt-8 flex items-start justify-between gap-4 text-sm">
-              <p>
-                <b>Daha hızlı ödeme için bilgilerimi kaydet</b>
-                <br />
-                <span className="text-black/55">
-                  Ödeme yaparak kullanım koşulları ve gizlilik politikasına tabi bir hesap
-                  oluşturmayı kabul edersiniz.
-                </span>
-              </p>
-              <button type="button" className="shrink-0">
-                Şimdi değil
-              </button>
-            </div>
             <button
               className="mt-8 w-full rounded-xl bg-[#202020] py-4 font-bold text-white disabled:cursor-not-allowed disabled:bg-black/20"
-              disabled={!terms}
+              disabled={!terms || creating || !checkoutConfig || Boolean(createdOrder)}
               type="submit"
             >
-              Şimdi öde
+              {creating
+                ? "Sipariş hazırlanıyor…"
+                : createdOrder
+                  ? "Sipariş hazırlandı"
+                  : "Siparişi ödeme için hazırla"}
             </button>
             {notice && (
               <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-950" role="status">
                 {notice}
               </p>
+            )}
+            {createdOrder && (
+              <Link
+                href={`/account/orders/${createdOrder.id}`}
+                className="focus-ring mt-3 inline-block font-bold underline"
+              >
+                Sipariş ayrıntılarını görüntüle
+              </Link>
             )}
             <div className="mt-10 flex gap-5 border-t border-black/15 pt-4 text-sm underline">
               <a href="/returns">İade politikası</a>
@@ -309,7 +324,13 @@ export default function CheckoutPage() {
           </section>
         </div>
       </form>
-      <OrderSummary items={items} subtotal={subtotal} count={count} />
+      <OrderSummary
+        items={items}
+        subtotal={subtotal}
+        shipping={shipping}
+        configLoaded={Boolean(checkoutConfig)}
+        count={count}
+      />
     </main>
   );
 }
@@ -317,10 +338,14 @@ export default function CheckoutPage() {
 function OrderSummary({
   items,
   subtotal,
+  shipping,
+  configLoaded,
   count,
 }: {
   items: ReturnType<typeof useUIStore.getState>["items"];
   subtotal: number;
+  shipping: number;
+  configLoaded: boolean;
   count: number;
 }) {
   return (
@@ -353,18 +378,6 @@ function OrderSummary({
             </div>
           ))}
         </div>
-        <div className="mt-5 flex gap-3">
-          <input
-            className="h-12 min-w-0 flex-1 rounded-xl border border-black/15 bg-white px-3 outline-none focus:border-black"
-            placeholder="İndirim kodu veya hediye kartı"
-          />
-          <button
-            className="rounded-xl border border-black/10 px-4 font-semibold text-black/45"
-            type="button"
-          >
-            Uygula
-          </button>
-        </div>
         <div className="mt-8 space-y-2 text-sm">
           <div className="flex justify-between">
             <span>Ara toplam · {count} ürün</span>
@@ -372,13 +385,19 @@ function OrderSummary({
           </div>
           <div className="flex justify-between">
             <span>Kargo</span>
-            <span className="text-black/55">Teslimat adresini girin</span>
+            <span className="text-black/55">
+              {!configLoaded
+                ? "Hesaplanıyor…"
+                : shipping === 0
+                  ? "Ücretsiz"
+                  : formatPrice(shipping)}
+            </span>
           </div>
           <div className="flex items-baseline justify-between pt-2 text-lg font-bold">
             <span>Toplam</span>
             <span>
               <small className="mr-1 text-xs font-normal text-black/55">{CURRENCY_LABEL}</small>
-              {formatPrice(subtotal)}
+              {formatPrice(subtotal + shipping)}
             </span>
           </div>
         </div>

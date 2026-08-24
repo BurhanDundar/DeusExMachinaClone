@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Product } from "@/data/products";
 
-export type CartLine = { product: Product; size: string; quantity: number };
+export type CartLine = { product: Product; size: string; variantId?: string; quantity: number };
 type State = {
   cartOpen: boolean;
   searchOpen: boolean;
@@ -34,12 +34,17 @@ export const useUIStore = create<State>()(
       closeMenu: () => set({ menuOpen: false }),
       add: (product, size) =>
         set((s) => {
-          const hit = s.items.find((i) => i.product.id === product.id && i.size === size);
+          const option = product.variants?.find(
+            (variant) => variant.available && (variant.size ?? variant.title) === size
+          );
+          const hit = s.items.find(
+            (i) => i.product.id === product.id && (i.variantId ?? i.size) === (option?.id ?? size)
+          );
           return {
             cartOpen: true,
             items: hit
               ? s.items.map((i) => (i === hit ? { ...i, quantity: i.quantity + 1 } : i))
-              : [...s.items, { product, size, quantity: 1 }],
+              : [...s.items, { product, size, variantId: option?.id, quantity: 1 }],
           };
         }),
       remove: (id, size) =>

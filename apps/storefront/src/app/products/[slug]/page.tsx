@@ -5,7 +5,29 @@ import { ProductSection } from "@/components/commerce/ProductSection";
 import { ProductPurchase } from "./purchase";
 import { Footer } from "@/components/layout/Footer";
 import { formatPrice } from "@/lib/currency";
+import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const product = await productBySlug(slug);
+  if (!product) return { title: "Ürün bulunamadı" };
+  return {
+    title: product.name,
+    description: product.description,
+    alternates: { canonical: `/products/${product.slug}` },
+    openGraph: {
+      type: "website",
+      title: product.name,
+      description: product.description,
+      images: product.images.slice(0, 1),
+    },
+  };
+}
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

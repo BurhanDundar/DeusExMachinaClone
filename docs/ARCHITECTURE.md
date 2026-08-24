@@ -25,9 +25,9 @@ Vercel Blob stores public product media; PostgreSQL stores its ordered URLs.
 ## Domain model
 
 Current domains include `User`, `UserAddress`, `RefreshToken`,
-`PasswordResetToken`, `Category`, `Product`, `ProductImage`, `ProductVariant`
-and `NewsletterSubscriber`. A future purchasable line will reference
-`ProductVariant`, not a frontend-only product/size pair.
+`PasswordResetToken`, `Category`, `Product`, `ProductImage`, `ProductVariant`,
+`StoreOrder`, `OrderItem` and `NewsletterSubscriber`. Purchasable lines reference
+`ProductVariant`; order rows also keep immutable product, SKU and price snapshots.
 
 ## Authentication lifecycle
 
@@ -40,23 +40,27 @@ and `NewsletterSubscriber`. A future purchasable line will reference
    rotation restores the in-memory session.
 5. Logout revokes the persisted refresh token and expires the cookie.
 
-## Future cart lifecycle
+## Cart lifecycle
 
-The current Zustand cart remains the guest cart. After login, the order milestone
-will merge lines by variant ID into the server cart, cap quantities
-to available stock, then clear successfully merged guest lines. A cart never
-reserves inventory.
+The Zustand cart is browser-local and stores variant IDs. Checkout validates every
+line against the current server catalog and stock. A cart never reserves inventory;
+only a pending order does. The cart remains intact while payment is pending.
 
-## Future checkout and stock lifecycle
+## Checkout and stock lifecycle
 
-Checkout will reload authoritative variants and prices, lock inventory rows,
-reserve stock transactionally, create a `PENDING_PAYMENT` order, then initialize
-payment through `PaymentProvider`. Reservations become sold stock only after a
-verified, idempotent provider callback. Failure or expiration releases them.
+Checkout reloads authoritative variants and prices, locks inventory rows,
+reserves stock transactionally and creates a `PAYMENT_PENDING` order.
+Reservations become sold stock only after a verified, idempotent provider
+callback. Failure or expiration releases them. Pending orders expire after the
+configured reservation window and creation is rate-limited per account.
 
-## Future payment and order lifecycle
+## Payment and order lifecycle
 
-`OrderService` will depend on a provider-neutral `PaymentProvider`; iyzico will
-be the first adapter. Redirects are display-only. Webhook/callback verification
+`OrderService` owns provider-neutral order and reservation state; iyzico will be
+the first payment adapter. Redirects are display-only. Callback verification
 is authoritative and idempotent. Email dispatch occurs after the paid
 transaction and cannot roll back a successful order.
+
+Administrators can move paid orders only through valid forward fulfillment states.
+Shipping requires a carrier and tracking number. Paid cancellation is blocked until
+a provider-backed refund flow exists.

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useAuth } from "@/auth/AuthProvider";
 import { ApiError } from "@/lib/api";
 
@@ -11,6 +11,14 @@ export default function Register() {
   const { register } = useAuth();
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [nextPath, setNextPath] = useState("");
+
+  useEffect(() => {
+    const requestedPath = new URLSearchParams(window.location.search).get("next");
+    if (requestedPath?.startsWith("/") && !requestedPath.startsWith("//")) {
+      setNextPath(requestedPath);
+    }
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -24,7 +32,7 @@ export default function Register() {
         email: String(data.get("email")),
         password: String(data.get("password")),
       });
-      router.replace("/account");
+      router.replace(nextPath || "/account");
     } catch (cause) {
       if (cause instanceof ApiError) {
         const detail = cause.body.fieldErrors ? Object.values(cause.body.fieldErrors)[0] : null;
@@ -96,7 +104,10 @@ export default function Register() {
           {submitting ? "Hesap oluşturuluyor…" : "Hesap oluştur"}
         </button>
       </form>
-      <Link href="/account/login" className="mt-6 block text-sm underline">
+      <Link
+        href={nextPath ? `/account/login?next=${encodeURIComponent(nextPath)}` : "/account/login"}
+        className="mt-6 block text-sm underline"
+      >
         Zaten hesabınız var mı? Giriş yapın
       </Link>
     </main>

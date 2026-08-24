@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { useAuth } from "@/auth/AuthProvider";
@@ -75,7 +76,7 @@ export default function AccountPage() {
                   defaultNames={{ firstName: user.firstName, lastName: user.lastName }}
                 />
               )}
-              {section === "orders" && <Orders />}
+              {section === "orders" && <Orders authenticatedFetch={authenticatedFetch} />}
             </div>
           </section>
         </div>
@@ -91,7 +92,9 @@ function Overview({ firstName }: { firstName: string }) {
       <h1 className="display text-4xl">Hoş geldiniz, {firstName}</h1>
       <section className="mt-10">
         <h2 className="text-xl font-bold">Son siparişler</h2>
-        <p className="mt-5 font-semibold">Henüz sipariş vermediniz.</p>
+        <p className="mt-5 font-semibold">
+          Siparişlerinizi “Sipariş geçmişi” bölümünden görüntüleyebilirsiniz.
+        </p>
       </section>
       <div className="my-8 border-t border-black/15" />
       <section>
@@ -196,11 +199,117 @@ function Details({
   );
 }
 
-function Orders() {
+type AccountOrder = {
+  id: string;
+  orderNumber: string;
+  status: string;
+  paymentStatus: string;
+  total: number;
+  createdAt: string;
+  trackingNumber: string | null;
+  items: Array<{ productName: string; optionTitle: string; quantity: number; lineTotal: number }>;
+};
+
+const orderStatusLabels: Record<string, string> = {
+  PAYMENT_PENDING: "Ödeme bekleniyor",
+  CONFIRMED: "Onaylandı",
+  PREPARING: "Hazırlanıyor",
+  SHIPPED: "Kargoya verildi",
+  DELIVERED: "Teslim edildi",
+  CANCELLED: "İptal edildi",
+};
+
+function Orders({
+  authenticatedFetch,
+}: {
+  authenticatedFetch: <T>(path: string, init?: RequestInit) => Promise<T>;
+}) {
+  const [orders, setOrders] = useState<AccountOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    authenticatedFetch<AccountOrder[]>("/api/orders")
+      .then((data) => active && setOrders(data))
+      .catch((requestError) => {
+        if (active)
+          setError(
+            requestError instanceof ApiError ? requestError.message : "Siparişler yüklenemedi."
+          );
+      })
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, [authenticatedFetch]);
+
   return (
     <>
       <h1 className="display text-4xl">Sipariş geçmişi</h1>
-      <p className="mt-10 font-semibold">Henüz sipariş vermediniz.</p>
+      {loading ? (
+        <p className="mt-10 font-semibold">Siparişler yükleniyor…</p>
+      ) : error ? (
+        <p className="mt-10 border border-red-700 bg-red-50 p-3 font-semibold text-red-900">
+          {error}
+        </p>
+      ) : orders.length === 0 ? (
+        <p className="mt-10 font-semibold">Henüz sipariş vermediniz.</p>
+      ) : (
+        <div className="mt-8 space-y-4">
+          {orders.map((order) => (
+            <article className="border border-black/20 p-5" key={order.id}>
+              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-black/15 pb-4">
+                <div>
+                  <h2 className="font-bold">{order.orderNumber}</h2>
+                  <p className="mt-1 text-sm text-black/60">
+                    {new Intl.DateTimeFormat("tr-TR", { dateStyle: "long" }).format(
+                      new Date(order.createdAt)
+                    )}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold">
+                    {new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" }).format(
+                      order.total
+                    )}
+                  </p>
+                  <p className="mt-1 text-sm font-semibold">
+                    {orderStatusLabels[order.status] ?? order.status}
+                  </p>
+                </div>
+              </div>
+              <ul className="mt-4 space-y-2 text-sm">
+                {order.items.map((item, index) => (
+                  <li
+                    className="flex justify-between gap-4"
+                    key={`${item.productName}-${item.optionTitle}-${index}`}
+                  >
+                    <span>
+                      {item.productName} · {item.optionTitle} × {item.quantity}
+                    </span>
+                    <span>
+                      {new Intl.NumberFormat("tr-TR", {
+                        style: "currency",
+                        currency: "TRY",
+                      }).format(item.lineTotal)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {order.trackingNumber && (
+                <p className="mt-4 text-sm font-semibold">Kargo takip: {order.trackingNumber}</p>
+              )}
+              <Link
+                href={`/account/orders/${order.id}`}
+                className="focus-ring mt-4 inline-block font-bold underline"
+              >
+                Sipariş ayrıntıları
+              </Link>
+            </article>
+          ))}
+        </div>
+      )}
       <div className="mt-12 border-t border-black/15" />
     </>
   );

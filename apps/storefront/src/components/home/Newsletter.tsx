@@ -10,9 +10,7 @@ export function Newsletter() {
     <section className="bg-[#e6e5e1] px-6 py-16 md:px-12">
       <div className="max-w-xl">
         <h2 className="display text-4xl">Bizden haberdar olun</h2>
-        <p className="mt-3 text-lg">
-          Yeni ürünler, atölye hikâyeleri ve ilk siparişinize %10 indirim.
-        </p>
+        <p className="mt-3 text-lg">Yeni ürünler, atölye hikâyeleri ve kampanya duyuruları.</p>
         {done ? (
           <p className="mt-8 font-bold">Kaydınız tamamlandı. Yakında görüşmek üzere.</p>
         ) : (
@@ -64,7 +62,11 @@ export function Newsletter() {
         {!done && (
           <p className="mt-4 max-w-lg text-xs leading-5 text-black/60">
             Kaydolarak kampanya ve ürün duyurularını almayı kabul edersiniz. Ayrıntılar için
-            gizlilik politikamızı inceleyin.
+            <a className="underline" href="/privacy">
+              {" "}
+              gizlilik politikamızı
+            </a>{" "}
+            inceleyin. Her iletideki bağlantıyı kullanarak abonelikten çıkabilirsiniz.
           </p>
         )}
       </div>

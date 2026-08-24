@@ -5,9 +5,7 @@ export default function AboutPage() {
   return (
     <main>
       <article className="shell mx-auto max-w-[1440px] py-16 md:py-24">
-        <p className="text-xs font-bold uppercase tracking-[.18em] text-black/55">
-          Northline Supply
-        </p>
+        <p className="text-xs font-bold uppercase tracking-[.18em] text-black/55">Binks Machina</p>
         <h1 className="display mt-5 text-5xl md:text-7xl">Hakkımızda</h1>
         <section className="mt-16 grid gap-10 lg:grid-cols-2 lg:gap-16">
           <div className="max-w-[500px]">
@@ -30,7 +28,7 @@ export default function AboutPage() {
             <figure className="relative aspect-[4/5] overflow-hidden bg-fog">
               <Image
                 src="/campaign/campaign-portrait.jpg"
-                alt="Northline topluluğu"
+                alt="Binks Machina topluluğu"
                 fill
                 className="object-cover"
                 sizes="(max-width: 1023px) 45vw, 320px"
@@ -39,7 +37,7 @@ export default function AboutPage() {
             <figure className="relative aspect-[4/5] overflow-hidden bg-fog">
               <Image
                 src="/campaign/campaign-portrait.png"
-                alt="Northline tarzı"
+                alt="Binks Machina tarzı"
                 fill
                 className="object-cover"
                 sizes="(max-width: 1023px) 45vw, 320px"
@@ -51,7 +49,7 @@ export default function AboutPage() {
           <figure className="relative aspect-[16/10] overflow-hidden bg-fog">
             <Image
               src="/campaign/campaign-wide.jpg"
-              alt="Northline yolda"
+              alt="Binks Machina yolda"
               fill
               className="object-cover"
               sizes="(max-width: 1023px) 100vw, 650px"

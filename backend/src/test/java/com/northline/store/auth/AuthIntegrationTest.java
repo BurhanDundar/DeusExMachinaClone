@@ -84,6 +84,28 @@ class AuthIntegrationTest {
   }
 
   @Test
+  void repeatedBadLoginsAreRateLimited() throws Exception {
+    register("limited@example.com").andExpect(status().isOk());
+    for (var attempt = 0; attempt < 5; attempt++) {
+      mvc
+        .perform(
+          post("/api/auth/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(loginBody("limited@example.com", "WrongPass1"))
+        )
+        .andExpect(status().isUnauthorized());
+    }
+    mvc
+      .perform(
+        post("/api/auth/login")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(loginBody("limited@example.com", "WrongPass1"))
+      )
+      .andExpect(status().isTooManyRequests())
+      .andExpect(jsonPath("$.code").value("LOGIN_RATE_LIMITED"));
+  }
+
+  @Test
   void currentUserRequiresBearerToken() throws Exception {
     mvc
       .perform(get("/api/users/me"))

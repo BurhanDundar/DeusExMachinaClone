@@ -29,12 +29,16 @@ public class NewsletterSubscriber {
   @Column(name = "unsubscribed_at")
   private Instant unsubscribedAt;
 
+  @Column(name = "unsubscribe_token", nullable = false, unique = true, length = 64)
+  private String unsubscribeToken;
+
   @PrePersist
   void onCreate() {
     var now = Instant.now();
     subscribedAt = now;
     consentAt = now;
     email = normalize(email);
+    if (unsubscribeToken == null) unsubscribeToken = newToken();
   }
 
   public static String normalize(String email) {
@@ -46,6 +50,12 @@ public class NewsletterSubscriber {
     active = true;
     consentAt = Instant.now();
     unsubscribedAt = null;
+    unsubscribeToken = newToken();
+  }
+
+  public void unsubscribe() {
+    active = false;
+    unsubscribedAt = Instant.now();
   }
 
   public UUID getId() {
@@ -66,5 +76,13 @@ public class NewsletterSubscriber {
 
   public Instant getSubscribedAt() {
     return subscribedAt;
+  }
+
+  public String getUnsubscribeToken() {
+    return unsubscribeToken;
+  }
+
+  private static String newToken() {
+    return UUID.randomUUID().toString().replace("-", "");
   }
 }

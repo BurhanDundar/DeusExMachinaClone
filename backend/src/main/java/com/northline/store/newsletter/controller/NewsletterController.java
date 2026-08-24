@@ -21,4 +21,10 @@ public class NewsletterController {
   void subscribe(@Valid @RequestBody NewsletterSubscriptionRequest request) {
     newsletter.subscribe(request);
   }
+
+  @DeleteMapping("/{token}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  void unsubscribe(@PathVariable String token) {
+    newsletter.unsubscribe(token);
+  }
 }

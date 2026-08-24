@@ -36,6 +36,9 @@ public class ProductVariant {
   @Column(name = "stock_quantity", nullable = false)
   private int stockQuantity;
 
+  @Column(name = "reserved_quantity", nullable = false)
+  private int reservedQuantity;
+
   @Column(nullable = false)
   private boolean active = true;
 
@@ -118,6 +121,14 @@ public class ProductVariant {
 
   public void setStockQuantity(int stockQuantity) {
     this.stockQuantity = stockQuantity;
+  }
+
+  public int getReservedQuantity() {
+    return reservedQuantity;
+  }
+
+  public void setReservedQuantity(int reservedQuantity) {
+    this.reservedQuantity = reservedQuantity;
   }
 
   public boolean isActive() {

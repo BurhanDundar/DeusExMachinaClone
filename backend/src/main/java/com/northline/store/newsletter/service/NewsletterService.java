@@ -25,6 +25,12 @@ public class NewsletterService {
     subscribers.save(subscriber);
   }
 
+  @Transactional
+  public void unsubscribe(String token) {
+    if (token == null || token.isBlank()) return;
+    subscribers.findByUnsubscribeToken(token.trim()).ifPresent(NewsletterSubscriber::unsubscribe);
+  }
+
   @Transactional(readOnly = true)
   public List<NewsletterSubscriberResponse> list() {
     return subscribers
