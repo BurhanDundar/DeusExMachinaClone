@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+.admin-number-input {
+  appearance: textfield;
+}
+
+.admin-number-input::-webkit-inner-spin-button,
+.admin-number-input::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
 :root {
   --ink: #111;
   --paper: #fafaf8;

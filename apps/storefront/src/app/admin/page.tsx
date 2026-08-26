@@ -41,6 +41,9 @@ type ProductVariant = {
   active: boolean;
   available: boolean;
 };
+type ProductVariantForm = Omit<ProductVariant, "stockQuantity"> & {
+  stockQuantity: number | "";
+};
 type AdminProduct = {
   id: string;
   name: string;
@@ -57,10 +60,11 @@ type AdminProduct = {
   variants: ProductVariant[];
 };
 
-type ProductForm = Omit<AdminProduct, "id" | "category"> & {
+type ProductForm = Omit<AdminProduct, "id" | "category" | "price" | "variants"> & {
   categoryId: string;
+  price: number | "";
   images: ProductImage[];
-  variants: ProductVariant[];
+  variants: ProductVariantForm[];
 };
 
 type Notification = {
@@ -123,7 +127,7 @@ function blankProduct(categories: AdminCategory[]): ProductForm {
     description: "",
     categoryId: categories[0]?.id ?? "",
     status: "DRAFT",
-    price: 0,
+    price: "",
     compareAtPrice: null,
     badge: null,
     featured: false,
@@ -136,7 +140,7 @@ function blankProduct(categories: AdminCategory[]): ProductForm {
         color: "",
         size: "",
         price: null,
-        stockQuantity: 0,
+        stockQuantity: "",
         active: true,
         available: true,
       },
@@ -266,6 +270,16 @@ export default function AdminPage() {
   async function saveProduct(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!productForm) return;
+    if (
+      productForm.price === "" ||
+      productForm.variants.some((variant) => variant.stockQuantity === "")
+    ) {
+      setNotification({
+        tone: "error",
+        text: "Fiyat ve stok adedi alanlarını doldurmalısın.",
+      });
+      return;
+    }
     setSaving(true);
     setNotification(null);
     try {
@@ -275,7 +289,7 @@ export default function AdminPage() {
         slug: productForm.slug.trim(),
         description: productForm.description.trim(),
         status: productForm.status,
-        price: productForm.price,
+        price: productForm.price as number,
         badge: productForm.badge || null,
         compareAtPrice: productForm.compareAtPrice || null,
         featured: productForm.featured,
@@ -295,7 +309,7 @@ export default function AdminPage() {
           color: variant.color || null,
           size: variant.size || null,
           price: variant.price || null,
-          stockQuantity: variant.stockQuantity,
+          stockQuantity: variant.stockQuantity as number,
           active: variant.active,
           sortOrder,
         })),
@@ -921,8 +935,13 @@ function ProductEditor({
               step="0.01"
               required
               value={form.price}
-              onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
-              className={`${input} mt-2`}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  price: e.target.value === "" ? "" : e.target.valueAsNumber,
+                })
+              }
+              className={`${input} admin-number-input mt-2`}
             />
           </label>
           <label className="font-bold">
@@ -939,7 +958,7 @@ function ProductEditor({
                   compareAtPrice: e.target.value === "" ? null : Number(e.target.value),
                 })
               }
-              className={`${input} mt-2`}
+              className={`${input} admin-number-input mt-2`}
             />
           </label>
           <label className="font-bold">
@@ -1118,18 +1137,22 @@ function ProductEditor({
                 <input
                   type="number"
                   min="0"
+                  required
                   value={variant.stockQuantity}
                   onChange={(e) =>
                     setForm({
                       ...form,
                       variants: form.variants.map((entry, entryIndex) =>
                         entryIndex === index
-                          ? { ...entry, stockQuantity: Number(e.target.value) }
+                          ? {
+                              ...entry,
+                              stockQuantity: e.target.value === "" ? "" : e.target.valueAsNumber,
+                            }
                           : entry
                       ),
                     })
                   }
-                  className={`${input} mt-2`}
+                  className={`${input} admin-number-input mt-2`}
                 />
               </label>
             </div>
@@ -1179,7 +1202,7 @@ function ProductEditor({
                   color: "",
                   size: "",
                   price: null,
-                  stockQuantity: 0,
+                  stockQuantity: "",
                   active: true,
                   available: true,
                 },

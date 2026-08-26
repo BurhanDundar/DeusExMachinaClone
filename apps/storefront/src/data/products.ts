@@ -332,7 +332,10 @@ export const fallbackProducts: Product[] = [
 
 export async function getProducts(): Promise<Product[]> {
   try {
-    const response = await fetch(`${catalogOrigin}/api/products`, { cache: "no-store" });
+    const response = await fetch(`${catalogOrigin}/api/products`, {
+      next: { revalidate: 60, tags: ["catalog-products"] },
+      signal: AbortSignal.timeout(10_000),
+    });
     if (!response.ok) throw new Error(`Catalog request failed with HTTP ${response.status}`);
     const catalogProducts = (await response.json()) as CatalogProduct[];
     return catalogProducts.map(toProduct);
@@ -345,7 +348,8 @@ export async function getProducts(): Promise<Product[]> {
 export async function productBySlug(slug: string): Promise<Product | undefined> {
   try {
     const response = await fetch(`${catalogOrigin}/api/products/${encodeURIComponent(slug)}`, {
-      cache: "no-store",
+      next: { revalidate: 60, tags: ["catalog-products", `catalog-product-${slug}`] },
+      signal: AbortSignal.timeout(10_000),
     });
     if (response.status === 404) return undefined;
     if (!response.ok) throw new Error(`Product request failed with HTTP ${response.status}`);

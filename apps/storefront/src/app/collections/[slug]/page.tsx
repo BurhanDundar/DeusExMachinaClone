@@ -1,7 +1,7 @@
 import { getProducts } from "@/data/products";
 import { CollectionProducts } from "@/components/commerce/CollectionProducts";
 import { Footer } from "@/components/layout/Footer";
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 type CollectionKey =
   "clothing" | "accessories" | "culture" | "sale" | "new-arrivals" | "accessories-notebooks";

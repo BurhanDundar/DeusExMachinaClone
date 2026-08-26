@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useAnimationControls, type PanInfo } from "framer-motion";
+import { motion, useAnimationControls, useDragControls, type PanInfo } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -22,6 +22,7 @@ export function ProductSection({
   const suppressProductClick = useRef(false);
   const clickResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const controls = useAnimationControls();
+  const dragControls = useDragControls();
   const [cardsPerPage, setCardsPerPage] = useState(2);
   const [activePage, setActivePage] = useState(0);
   const [viewportWidth, setViewportWidth] = useState(0);
@@ -94,9 +95,12 @@ export function ProductSection({
   }
 
   function handleDragEnd(_: PointerEvent, info: PanInfo) {
-    allowFutureProductClicks();
+    const dragDistance = Math.abs(info.offset.x);
+    if (dragDistance >= 8) allowFutureProductClicks();
+    else suppressProductClick.current = false;
+
     const threshold = Math.max(42, viewportWidth * 0.12);
-    const movedFarEnough = Math.abs(info.offset.x) >= threshold;
+    const movedFarEnough = dragDistance >= threshold;
     const movedFastEnough = Math.abs(info.velocity.x) >= 550;
 
     if (!movedFarEnough && !movedFastEnough) {
@@ -121,7 +125,9 @@ export function ProductSection({
           animate={controls}
           className="flex cursor-grab select-none active:cursor-grabbing"
           drag={pageCount > 1 ? "x" : false}
+          dragControls={dragControls}
           dragElastic={0.08}
+          dragListener={false}
           dragMomentum={false}
           onClickCapture={(event) => {
             if (!suppressProductClick.current) return;
@@ -132,6 +138,9 @@ export function ProductSection({
           }}
           onDragEnd={handleDragEnd}
           onDragStart={markDragStarted}
+          onPointerDown={(event) => {
+            if (pageCount > 1) dragControls.start(event, { distanceThreshold: 8 });
+          }}
         >
           {pages.map((page, pageIndex) => (
             <div className="min-w-0 shrink-0 grow-0 basis-full" key={pageIndex}>

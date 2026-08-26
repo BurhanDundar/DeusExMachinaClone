@@ -51,7 +51,13 @@ export function CartDrawer() {
                     className="grid grid-cols-[88px_1fr] gap-4 border-b border-black/15 py-5"
                   >
                     <div className="relative aspect-[4/5] bg-fog">
-                      <Image src={i.product.images[0]} alt="" fill className="object-cover" />
+                      <Image
+                        src={i.product.images[0]}
+                        alt=""
+                        fill
+                        sizes="80px"
+                        className="object-cover"
+                      />
                     </div>
                     <div>
                       <p className="font-bold">{i.product.name}</p>

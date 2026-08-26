@@ -19,12 +19,28 @@ export class ApiError extends Error {
   }
 }
 
+const API_TIMEOUT_MS = 10_000;
+
 export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
-    ...init,
-    credentials: "include",
-    headers: { "Content-Type": "application/json", ...init.headers },
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      ...init,
+      credentials: "include",
+      headers: { "Content-Type": "application/json", ...init.headers },
+      signal: init.signal ?? AbortSignal.timeout(API_TIMEOUT_MS),
+    });
+  } catch (error) {
+    const timedOut = error instanceof DOMException && error.name === "TimeoutError";
+    throw new ApiError(timedOut ? 408 : 503, {
+      code: timedOut ? "REQUEST_TIMEOUT" : "SERVICE_UNAVAILABLE",
+      message: timedOut
+        ? "İstek zaman aşımına uğradı. Lütfen tekrar deneyin."
+        : "Sunucuya şu anda ulaşılamıyor. Lütfen kısa süre sonra tekrar deneyin.",
+    });
+  }
+
   if (!response.ok) {
     const body = await response.json().catch(() => ({
       code: "REQUEST_FAILED",

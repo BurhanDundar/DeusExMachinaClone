@@ -6,7 +6,7 @@ import { ProductPurchase } from "./purchase";
 import { Footer } from "@/components/layout/Footer";
 import { formatPrice } from "@/lib/currency";
 import type { Metadata } from "next";
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export async function generateMetadata({
   params,

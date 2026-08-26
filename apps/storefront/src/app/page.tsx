@@ -1,11 +1,12 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Campaign } from "@/components/home/Campaign";
 import { ProductSection } from "@/components/commerce/ProductSection";
 import { EditorialGrid } from "@/components/home/EditorialGrid";
 import { Footer } from "@/components/layout/Footer";
 import { getProducts } from "@/data/products";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function Home() {
   const products = await getProducts();
@@ -54,7 +55,7 @@ export default async function Home() {
 }
 function CampaignTile({ image, title, slug }: { image: string; title: string; slug: string }) {
   return (
-    <a
+    <Link
       href={`/collections/${slug}`}
       className="group relative block aspect-[4/5] overflow-hidden bg-black"
     >
@@ -66,6 +67,6 @@ function CampaignTile({ image, title, slug }: { image: string; title: string; sl
         sizes="(max-width:767px) 100vw,50vw"
       />
       <span className="display absolute bottom-6 left-6 text-4xl text-white">{title} →</span>
-    </a>
+    </Link>
   );
 }
