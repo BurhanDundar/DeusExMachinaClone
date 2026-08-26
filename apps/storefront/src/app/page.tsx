@@ -1,14 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
+import { connection } from "next/server";
 import { Campaign } from "@/components/home/Campaign";
 import { ProductSection } from "@/components/commerce/ProductSection";
 import { EditorialGrid } from "@/components/home/EditorialGrid";
 import { Footer } from "@/components/layout/Footer";
 import { getProducts } from "@/data/products";
 
-export const revalidate = 60;
-
 export default async function Home() {
+  // Render the catalog when a request arrives so deployments do not depend on
+  // the external commerce API being awake during `next build`.
+  await connection();
   const products = await getProducts();
   const featuredProducts = products.filter((product) => product.featured);
   const clothing = products.filter((product) => product.categorySlug === "giyim");
