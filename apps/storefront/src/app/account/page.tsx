@@ -46,6 +46,14 @@ export default function AccountPage() {
                   <span>{item.label}</span>
                 </button>
               ))}
+              {user.role === "ADMIN" && (
+                <Link
+                  href="/admin"
+                  className="focus-ring py-1 text-left font-semibold opacity-75 transition-opacity hover:opacity-100"
+                >
+                  Yönetim Paneli
+                </Link>
+              )}
               <button
                 onClick={async () => {
                   await logout();

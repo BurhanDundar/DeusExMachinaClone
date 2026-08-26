@@ -1,4 +1,5 @@
 "use client";
+import type { MouseEvent } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, Search, ShoppingBag, X } from "lucide-react";
@@ -12,11 +13,27 @@ export function Header() {
   const s = useUIStore();
   const pathname = usePathname();
   const count = s.items.reduce((n, i) => n + i.quantity, 0);
+
+  function handleHomeClick(event: MouseEvent<HTMLAnchorElement>) {
+    s.closeMenu();
+    s.closeSearch();
+    s.closeCart();
+    if (pathname === "/") {
+      event.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
   if (pathname === "/checkout")
     return (
       <header className="sticky top-0 z-40 h-[80px] border-b border-black/10 bg-paper">
         <div className="relative mx-auto flex h-full max-w-7xl items-center justify-center px-5">
-          <Link href="/" className="focus-ring">
+          <Link
+            href="/"
+            onClick={handleHomeClick}
+            aria-label="Ana sayfaya dön"
+            className="focus-ring inline-flex rounded-sm"
+          >
             <Brand />
           </Link>
           <button
@@ -48,7 +65,12 @@ export function Header() {
           >
             {s.menuOpen ? <X /> : <Menu />}
           </button>
-          <Link href="/" className="focus-ring absolute left-1/2 -translate-x-1/2">
+          <Link
+            href="/"
+            onClick={handleHomeClick}
+            aria-label="Ana sayfaya dön"
+            className="focus-ring absolute left-1/2 inline-flex -translate-x-1/2 rounded-sm"
+          >
             <Brand />
           </Link>
           <div className="fixed right-3 top-5 z-50 flex items-center gap-0 md:right-4 md:top-6 md:gap-5">

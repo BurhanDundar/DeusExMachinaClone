@@ -9,11 +9,17 @@ import {
   ArrowUp,
   Archive,
   Check,
+  FolderTree,
   ImageIcon,
+  Mail,
+  Package,
+  PackageOpen,
   Pencil,
   Plus,
   Save,
+  ShoppingBag,
   Upload,
+  UserRound,
   X,
 } from "lucide-react";
 import { useAuth } from "@/auth/AuthProvider";
@@ -72,6 +78,8 @@ type Notification = {
   text: string;
 };
 
+type AdminTab = "products" | "categories" | "orders" | "newsletter";
+
 type NewsletterSubscriber = {
   id: string;
   email: string;
@@ -120,6 +128,25 @@ const statusLabels: Record<ProductForm["status"], string> = {
   ARCHIVED: "Arşivlenmiş",
 };
 
+const adminTabs = [
+  { id: "products", label: "Ürünler", icon: Package },
+  { id: "categories", label: "Kategoriler", icon: FolderTree },
+  { id: "orders", label: "Siparişler", icon: ShoppingBag },
+  { id: "newsletter", label: "Bülten", icon: Mail },
+] as const;
+
+const adminInput =
+  "w-full rounded-xl border border-black/15 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none transition placeholder:text-black/35 hover:border-black/25 focus:border-black/40 focus:ring-4 focus:ring-black/5";
+const adminLabel = "block text-sm font-semibold text-black/80";
+const primaryButton =
+  "focus-ring inline-flex items-center justify-center gap-2 rounded-xl bg-black px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-black/85 hover:shadow-md active:translate-y-0 disabled:pointer-events-none disabled:opacity-50";
+const secondaryButton =
+  "focus-ring inline-flex items-center justify-center gap-2 rounded-xl border border-black/15 bg-white px-3.5 py-2.5 text-sm font-semibold shadow-sm transition hover:border-black/25 hover:bg-fog/70 disabled:pointer-events-none disabled:opacity-40";
+const ghostButton =
+  "focus-ring inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition hover:bg-black/5 disabled:pointer-events-none disabled:opacity-40";
+const panel =
+  "rounded-2xl border border-black/10 bg-white shadow-[0_12px_36px_rgba(17,17,17,0.05)]";
+
 function blankProduct(categories: AdminCategory[]): ProductForm {
   return {
     name: "",
@@ -163,7 +190,7 @@ function formFromProduct(product: AdminProduct): ProductForm {
 export default function AdminPage() {
   const router = useRouter();
   const { user, accessToken, loading, authenticatedFetch } = useAuth();
-  const [tab, setTab] = useState<"products" | "categories" | "orders" | "newsletter">("products");
+  const [tab, setTab] = useState<AdminTab>("products");
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([]);
@@ -173,8 +200,8 @@ export default function AdminPage() {
   const [categoryForm, setCategoryForm] = useState<AdminCategory | null>(null);
   const [notification, setNotification] = useState<Notification | null>(null);
   const [saving, setSaving] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
   const latestAuthenticatedFetch = useRef(authenticatedFetch);
-  const loadedUserId = useRef<string | null>(null);
 
   const selectedProduct = useMemo(
     () => products.find((product) => product.id === selectedId) ?? null,
@@ -190,9 +217,9 @@ export default function AdminPage() {
   }, [authenticatedFetch]);
 
   useEffect(() => {
-    if (!user || user.role !== "ADMIN" || loadedUserId.current === user.id) return;
-    loadedUserId.current = user.id;
+    if (!user || user.role !== "ADMIN") return;
     let active = true;
+    setDataLoading(true);
     Promise.all([
       latestAuthenticatedFetch.current<AdminProduct[]>("/api/admin/catalog/products"),
       latestAuthenticatedFetch.current<AdminCategory[]>("/api/admin/catalog/categories"),
@@ -215,6 +242,9 @@ export default function AdminPage() {
               ? error.message
               : "Panel yüklenemedi.";
         setNotification({ tone: "error", text: detail });
+      })
+      .finally(() => {
+        if (active) setDataLoading(false);
       });
     return () => {
       active = false;
@@ -231,12 +261,28 @@ export default function AdminPage() {
     return () => window.clearTimeout(timeout);
   }, [notification]);
 
-  if (loading || !user) return <main className="min-h-[60vh] p-8">Yükleniyor…</main>;
+  if (loading || !user) {
+    return (
+      <main className="flex min-h-[70vh] items-center justify-center bg-paper p-8">
+        <div className={`${panel} flex items-center gap-3 px-5 py-4 text-sm font-semibold`}>
+          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-black" />
+          Yönetim paneli yükleniyor…
+        </div>
+      </main>
+    );
+  }
   if (user.role !== "ADMIN") {
     return (
-      <main className="mx-auto min-h-[60vh] max-w-2xl p-8 pt-24">
-        <h1 className="display text-4xl">Erişim yok</h1>
-        <p className="mt-4 text-base">Bu alan yalnızca mağaza yöneticileri içindir.</p>
+      <main className="flex min-h-[70vh] items-center justify-center bg-paper p-6">
+        <section className={`${panel} max-w-lg p-8 text-center`}>
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-fog">
+            <UserRound size={22} aria-hidden="true" />
+          </div>
+          <h1 className="display mt-5 text-4xl">Erişim yok</h1>
+          <p className="mt-3 text-base text-black/60">
+            Bu alan yalnızca mağaza yöneticileri içindir.
+          </p>
+        </section>
       </main>
     );
   }
@@ -422,97 +468,184 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-screen bg-paper px-4 py-8 sm:px-8 lg:px-12">
+    <main className="min-h-screen bg-paper px-4 py-6 text-ink sm:px-8 sm:py-8 lg:px-12">
       {notification && (
         <Toast notification={notification} onDismiss={() => setNotification(null)} />
       )}
       <div className="mx-auto max-w-[1440px]">
-        <header className="flex flex-wrap items-end justify-between gap-5 border-b-2 border-black pb-6">
-          <div>
-            <p className="font-semibold uppercase tracking-[0.18em]">Binks Mağaza</p>
-            <h1 className="display mt-2 text-5xl">Yönetim</h1>
+        <header className={`${panel} overflow-hidden p-6 sm:p-8`}>
+          <div className="flex flex-wrap items-start justify-between gap-5">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-black/45">
+                Binks Mağaza
+              </p>
+              <h1 className="display mt-2 text-4xl sm:text-5xl">Yönetim paneli</h1>
+              <p className="mt-2 max-w-xl text-sm text-black/55">
+                Mağaza içeriğini, siparişleri ve müşteri iletişimini tek yerden yönet.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 rounded-full border border-black/10 bg-fog/60 py-2 pl-2 pr-4">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black text-white">
+                <UserRound size={17} aria-hidden="true" />
+              </span>
+              <span>
+                <span className="block text-[11px] font-bold uppercase tracking-wide text-black/45">
+                  Yönetici
+                </span>
+                <span className="block text-sm font-semibold">
+                  {user.firstName} {user.lastName}
+                </span>
+              </span>
+            </div>
           </div>
-          <p className="font-semibold">
-            {user.firstName} {user.lastName}
-          </p>
+          <div className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {[
+              { label: "Toplam ürün", value: products.length, icon: Package },
+              { label: "Kategori", value: categories.length, icon: FolderTree },
+              { label: "Sipariş", value: orders.length, icon: ShoppingBag },
+              {
+                label: "Aktif abone",
+                value: subscribers.filter((subscriber) => subscriber.active).length,
+                icon: Mail,
+              },
+            ].map((metric) => {
+              const Icon = metric.icon;
+              return (
+                <div
+                  key={metric.label}
+                  className="flex items-center gap-3 rounded-xl border border-black/10 bg-paper/70 p-3.5"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm">
+                    <Icon size={17} aria-hidden="true" />
+                  </span>
+                  <span>
+                    <strong className="block text-xl leading-none">{metric.value}</strong>
+                    <span className="mt-1 block text-xs font-medium text-black/50">
+                      {metric.label}
+                    </span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </header>
-        <nav className="mt-6 flex gap-2" aria-label="Yönetim bölümleri">
-          {(["products", "categories", "orders", "newsletter"] as const).map((item) => (
-            <button
-              key={item}
-              onClick={() => setTab(item)}
-              className={`focus-ring px-4 py-2 font-bold ${tab === item ? "bg-black text-white" : "border border-black"}`}
-            >
-              {item === "products"
-                ? "Ürünler"
-                : item === "categories"
-                  ? "Kategoriler"
-                  : item === "orders"
-                    ? "Siparişler"
-                    : "Bülten"}
-            </button>
-          ))}
-        </nav>
-        {tab === "products" ? (
-          <div className="mt-8 grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
-            <section>
+        <nav
+          className="no-scrollbar sticky top-3 z-30 mt-4 flex gap-1 overflow-x-auto rounded-2xl border border-black/10 bg-white/95 p-1.5 shadow-lg shadow-black/5 backdrop-blur"
+          aria-label="Yönetim bölümleri"
+        >
+          {adminTabs.map((item) => {
+            const Icon = item.icon;
+            return (
               <button
-                onClick={() => {
-                  setSelectedId(null);
-                  setProductForm(blankProduct(categories));
-                  setNotification(null);
-                }}
-                className="focus-ring mb-4 flex items-center gap-2 bg-black px-4 py-3 font-bold text-white"
+                key={item.id}
+                onClick={() => setTab(item.id)}
+                aria-pressed={tab === item.id}
+                className={`focus-ring flex min-w-fit flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition ${
+                  tab === item.id
+                    ? "bg-black text-white shadow-sm"
+                    : "text-black/55 hover:bg-fog/70 hover:text-black"
+                }`}
               >
-                <Plus size={17} /> Yeni ürün
+                <Icon size={16} aria-hidden="true" />
+                {item.label}
               </button>
-              <div className="mb-4 flex items-end justify-between gap-4 border-b border-black/20 pb-4">
+            );
+          })}
+        </nav>
+        {dataLoading ? (
+          <section className={`${panel} mt-6 flex min-h-64 items-center justify-center p-8`}>
+            <div className="flex items-center gap-3 text-sm font-semibold text-black/60">
+              <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-black" />
+              Yönetim verileri yükleniyor…
+            </div>
+          </section>
+        ) : tab === "products" ? (
+          <div className="mt-6 grid items-start gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+            <section className={`${panel} p-4 sm:p-5`}>
+              <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <h2 className="display text-3xl">Ürünler</h2>
-                  <p className="mt-1 text-sm text-black/65">
+                  <p className="mt-1 text-sm text-black/55">
                     Bir ürünü seçerek bilgilerini, görsellerini ve stoklarını düzenle.
                   </p>
                 </div>
-                <span className="shrink-0 font-bold">{products.length} ürün</span>
+                <button
+                  onClick={() => {
+                    setSelectedId(null);
+                    setProductForm(blankProduct(categories));
+                    setNotification(null);
+                  }}
+                  className={primaryButton}
+                >
+                  <Plus size={16} /> Yeni ürün
+                </button>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {products.map((product) => (
-                  <button
-                    key={product.id}
-                    onClick={() => {
-                      setSelectedId(product.id);
-                      setNotification(null);
-                    }}
-                    className={`focus-ring group overflow-hidden border text-left transition-colors ${selectedId === product.id ? "border-black bg-fog" : "border-black/20 bg-white hover:border-black"}`}
-                  >
-                    <span className="relative block aspect-[4/3] overflow-hidden bg-fog">
-                      {product.images[0]?.url ? (
-                        <Image
-                          src={product.images[0].url}
-                          alt={product.images[0].altText || product.name}
-                          fill
-                          sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 28vw"
-                          className="object-cover transition-transform duration-200 group-hover:scale-[1.03]"
-                        />
-                      ) : (
-                        <ImageIcon
-                          className="m-auto h-full w-10 text-black/35"
-                          aria-hidden="true"
-                        />
-                      )}
-                    </span>
-                    <span className="flex items-start justify-between gap-3 p-3">
-                      <span className="min-w-0">
-                        <strong className="block truncate">{product.name}</strong>
-                        <span className="mt-1 block text-sm text-black/70">
-                          {product.status} · {formatPrice(product.price)}
+              {products.length ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {products.map((product) => (
+                    <button
+                      key={product.id}
+                      onClick={() => {
+                        setSelectedId(product.id);
+                        setNotification(null);
+                      }}
+                      aria-pressed={selectedId === product.id}
+                      className={`focus-ring group overflow-hidden rounded-xl border text-left transition duration-200 ${
+                        selectedId === product.id
+                          ? "border-black/50 bg-fog/70 shadow-md ring-2 ring-black/10"
+                          : "border-black/10 bg-white shadow-sm hover:-translate-y-0.5 hover:border-black/25 hover:shadow-md"
+                      }`}
+                    >
+                      <span className="relative block aspect-[4/3] overflow-hidden bg-fog">
+                        {product.images[0]?.url ? (
+                          <Image
+                            src={product.images[0].url}
+                            alt={product.images[0].altText || product.name}
+                            fill
+                            sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 28vw"
+                            className="object-cover transition-transform duration-200 group-hover:scale-[1.03]"
+                          />
+                        ) : (
+                          <ImageIcon
+                            className="m-auto h-full w-10 text-black/35"
+                            aria-hidden="true"
+                          />
+                        )}
+                      </span>
+                      <span className="flex items-start justify-between gap-3 p-3.5">
+                        <span className="min-w-0">
+                          <strong className="block truncate text-sm">{product.name}</strong>
+                          <span className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-black/55">
+                            <span
+                              className={`rounded-full px-2 py-0.5 font-bold ${
+                                product.status === "ACTIVE"
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : product.status === "DRAFT"
+                                    ? "bg-amber-100 text-amber-800"
+                                    : "bg-black/5 text-black/55"
+                              }`}
+                            >
+                              {statusLabels[product.status]}
+                            </span>
+                            {formatPrice(product.price)}
+                          </span>
+                        </span>
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-black/5 transition group-hover:bg-black group-hover:text-white">
+                          <Pencil size={14} aria-hidden="true" />
                         </span>
                       </span>
-                      <Pencil className="mt-0.5 shrink-0" size={17} />
-                    </span>
-                  </button>
-                ))}
-              </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex min-h-64 flex-col items-center justify-center rounded-xl border border-dashed border-black/15 bg-paper/60 p-8 text-center">
+                  <PackageOpen className="text-black/30" size={30} aria-hidden="true" />
+                  <strong className="mt-4">Henüz ürün yok</strong>
+                  <p className="mt-1 max-w-xs text-sm text-black/50">
+                    İlk ürününü ekleyerek mağaza kataloğunu oluşturmaya başlayabilirsin.
+                  </p>
+                </div>
+              )}
             </section>
             {productForm && (
               <ProductEditor
@@ -532,37 +665,70 @@ export default function AdminPage() {
             )}
           </div>
         ) : tab === "categories" ? (
-          <div className="mt-8 grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
-            <section>
-              <button
-                onClick={() =>
-                  setCategoryForm({
-                    id: "",
-                    name: "",
-                    slug: "",
-                    description: "",
-                    sortOrder: categories.length,
-                    active: true,
-                  })
-                }
-                className="focus-ring mb-4 flex items-center gap-2 bg-black px-4 py-3 font-bold text-white"
-              >
-                <Plus size={17} /> Yeni kategori
-              </button>
-              <div className="divide-y border-y border-black/20">
+          <div className="mt-6 grid items-start gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+            <section className={`${panel} p-4 sm:p-5`}>
+              <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h2 className="display text-3xl">Kategoriler</h2>
+                  <p className="mt-1 text-sm text-black/55">
+                    Ürünlerini mağazada düzenli koleksiyonlar altında grupla.
+                  </p>
+                </div>
+                <button
+                  onClick={() =>
+                    setCategoryForm({
+                      id: "",
+                      name: "",
+                      slug: "",
+                      description: "",
+                      sortOrder: categories.length,
+                      active: true,
+                    })
+                  }
+                  className={primaryButton}
+                >
+                  <Plus size={16} /> Yeni kategori
+                </button>
+              </div>
+              <div className="space-y-2">
                 {categories.map((category) => (
                   <button
                     key={category.id}
                     onClick={() => setCategoryForm(category)}
-                    className="focus-ring flex w-full items-center justify-between py-4 text-left"
+                    aria-pressed={categoryForm?.id === category.id}
+                    className={`focus-ring group flex w-full items-center justify-between rounded-xl border px-4 py-3.5 text-left transition ${
+                      categoryForm?.id === category.id
+                        ? "border-black/30 bg-fog/70 shadow-sm"
+                        : "border-black/10 bg-white hover:border-black/20 hover:bg-paper"
+                    }`}
                   >
-                    <span>
-                      <strong className="block">{category.name}</strong>
-                      <span className="text-sm">/{category.slug}</span>
+                    <span className="min-w-0">
+                      <span className="flex items-center gap-2">
+                        <strong className="truncate">{category.name}</strong>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                            category.active
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-black/5 text-black/50"
+                          }`}
+                        >
+                          {category.active ? "Yayında" : "Gizli"}
+                        </span>
+                      </span>
+                      <span className="mt-1 block truncate text-sm text-black/45">
+                        /{category.slug}
+                      </span>
                     </span>
-                    <Pencil size={17} />
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-black/5 transition group-hover:bg-black group-hover:text-white">
+                      <Pencil size={14} aria-hidden="true" />
+                    </span>
                   </button>
                 ))}
+                {!categories.length && (
+                  <div className="rounded-xl border border-dashed border-black/15 bg-paper/60 p-8 text-center text-sm text-black/50">
+                    Henüz kategori oluşturulmamış.
+                  </div>
+                )}
               </div>
             </section>
             {categoryForm && (
@@ -575,43 +741,45 @@ export default function AdminPage() {
             )}
           </div>
         ) : tab === "orders" ? (
-          <section className="mt-8">
-            <div className="mb-5 flex items-end justify-between gap-5 border-b border-black/20 pb-4">
+          <section className={`${panel} mt-6 overflow-hidden`}>
+            <div className="flex items-end justify-between gap-5 border-b border-black/10 p-5 sm:p-6">
               <div>
                 <h2 className="display text-3xl">Siparişler</h2>
-                <p className="mt-1 text-sm text-black/65">
+                <p className="mt-1 text-sm text-black/55">
                   Ödeme ve hazırlık durumlarını takip et.
                 </p>
               </div>
-              <span className="font-bold">{orders.length} sipariş</span>
+              <span className="rounded-full bg-fog px-3 py-1.5 text-xs font-bold">
+                {orders.length} sipariş
+              </span>
             </div>
             {orders.length ? (
-              <div className="overflow-x-auto border border-black/20 bg-white">
-                <table className="w-full min-w-[900px] text-left">
-                  <thead className="border-b border-black/20 bg-fog">
+              <div className="overflow-x-auto bg-white">
+                <table className="w-full min-w-[980px] text-left text-sm">
+                  <thead className="border-b border-black/10 bg-fog/60 text-[11px] uppercase tracking-wide text-black/50">
                     <tr>
-                      <th className="p-4">Sipariş</th>
-                      <th className="p-4">Müşteri</th>
-                      <th className="p-4">Ürünler</th>
-                      <th className="p-4">Durum</th>
-                      <th className="p-4">İşlem</th>
-                      <th className="p-4">Toplam</th>
-                      <th className="p-4">Tarih</th>
+                      <th className="px-5 py-3.5">Sipariş</th>
+                      <th className="px-5 py-3.5">Müşteri</th>
+                      <th className="px-5 py-3.5">Ürünler</th>
+                      <th className="px-5 py-3.5">Durum</th>
+                      <th className="px-5 py-3.5">İşlem</th>
+                      <th className="px-5 py-3.5">Toplam</th>
+                      <th className="px-5 py-3.5">Tarih</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-black/10">
                     {orders.map((order) => (
-                      <tr key={order.id}>
-                        <td className="p-4 font-bold">{order.orderNumber}</td>
-                        <td className="p-4">
+                      <tr key={order.id} className="transition-colors hover:bg-paper/70">
+                        <td className="px-5 py-4 font-bold">{order.orderNumber}</td>
+                        <td className="px-5 py-4">
                           <strong className="block">
                             {order.firstName} {order.lastName}
                           </strong>
-                          <span className="text-sm text-black/60">
+                          <span className="mt-0.5 block text-xs text-black/50">
                             {order.customerEmail} · {order.city}
                           </span>
                         </td>
-                        <td className="p-4 text-sm">
+                        <td className="max-w-xs px-5 py-4 text-xs leading-5 text-black/65">
                           {order.items
                             .map(
                               (item) =>
@@ -619,24 +787,36 @@ export default function AdminPage() {
                             )
                             .join(", ")}
                         </td>
-                        <td className="p-4">
-                          <strong className="block">
+                        <td className="px-5 py-4">
+                          <strong
+                            className={`inline-flex rounded-full px-2.5 py-1 text-xs ${
+                              order.status === "DELIVERED"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : order.status === "CANCELLED"
+                                  ? "bg-red-100 text-red-800"
+                                  : order.status === "SHIPPED"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : "bg-amber-100 text-amber-800"
+                            }`}
+                          >
                             {orderStatusLabels[order.status] ?? order.status}
                           </strong>
-                          <span className="text-sm text-black/60">
+                          <span className="mt-1.5 block text-xs text-black/50">
                             {paymentStatusLabels[order.paymentStatus] ?? order.paymentStatus}
                           </span>
                           {order.trackingNumber && (
-                            <span className="mt-1 block text-xs text-black/60">
+                            <span className="mt-1 block text-xs text-black/50">
                               {order.shippingCarrier}: {order.trackingNumber}
                             </span>
                           )}
                         </td>
-                        <td className="p-4">
+                        <td className="px-5 py-4">
                           <OrderActions order={order} disabled={saving} onUpdate={updateOrder} />
                         </td>
-                        <td className="p-4 font-bold">{formatPrice(order.total)}</td>
-                        <td className="p-4">
+                        <td className="whitespace-nowrap px-5 py-4 font-bold">
+                          {formatPrice(order.total)}
+                        </td>
+                        <td className="whitespace-nowrap px-5 py-4 text-xs text-black/60">
                           {new Intl.DateTimeFormat("tr-TR", {
                             dateStyle: "medium",
                             timeStyle: "short",
@@ -649,38 +829,54 @@ export default function AdminPage() {
                 </table>
               </div>
             ) : (
-              <p className="border-y border-black/15 py-10">Henüz sipariş yok.</p>
+              <div className="flex min-h-56 flex-col items-center justify-center p-8 text-center">
+                <ShoppingBag className="text-black/25" size={30} aria-hidden="true" />
+                <strong className="mt-4">Henüz sipariş yok</strong>
+                <p className="mt-1 text-sm text-black/50">
+                  Yeni siparişler geldiğinde burada görünecek.
+                </p>
+              </div>
             )}
           </section>
         ) : (
-          <section className="mt-8 max-w-4xl">
-            <div className="mb-5 flex items-end justify-between gap-5 border-b border-black/20 pb-4">
+          <section className={`${panel} mt-6 max-w-5xl overflow-hidden`}>
+            <div className="flex items-end justify-between gap-5 border-b border-black/10 p-5 sm:p-6">
               <div>
                 <h2 className="display text-3xl">Bülten aboneleri</h2>
-                <p className="mt-1 text-sm text-black/65">
+                <p className="mt-1 text-sm text-black/55">
                   Pazarlama izni vererek kaydolan e-posta adresleri.
                 </p>
               </div>
-              <span className="font-bold">
+              <span className="rounded-full bg-fog px-3 py-1.5 text-xs font-bold">
                 {subscribers.filter((subscriber) => subscriber.active).length} aktif
               </span>
             </div>
             {subscribers.length ? (
-              <div className="overflow-x-auto border border-black/20 bg-white">
-                <table className="w-full min-w-[620px] text-left">
-                  <thead className="border-b border-black/20 bg-fog">
+              <div className="overflow-x-auto bg-white">
+                <table className="w-full min-w-[620px] text-left text-sm">
+                  <thead className="border-b border-black/10 bg-fog/60 text-[11px] uppercase tracking-wide text-black/50">
                     <tr>
-                      <th className="p-4">E-posta</th>
-                      <th className="p-4">Durum</th>
-                      <th className="p-4">Kayıt tarihi</th>
+                      <th className="px-5 py-3.5">E-posta</th>
+                      <th className="px-5 py-3.5">Durum</th>
+                      <th className="px-5 py-3.5">Kayıt tarihi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-black/10">
                     {subscribers.map((subscriber) => (
-                      <tr key={subscriber.id}>
-                        <td className="p-4 font-semibold">{subscriber.email}</td>
-                        <td className="p-4">{subscriber.active ? "Aktif" : "Ayrılmış"}</td>
-                        <td className="p-4">
+                      <tr key={subscriber.id} className="transition-colors hover:bg-paper/70">
+                        <td className="px-5 py-4 font-semibold">{subscriber.email}</td>
+                        <td className="px-5 py-4">
+                          <span
+                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
+                              subscriber.active
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-black/5 text-black/50"
+                            }`}
+                          >
+                            {subscriber.active ? "Aktif" : "Ayrılmış"}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-black/60">
                           {new Intl.DateTimeFormat("tr-TR", {
                             dateStyle: "medium",
                             timeStyle: "short",
@@ -693,7 +889,13 @@ export default function AdminPage() {
                 </table>
               </div>
             ) : (
-              <p className="border-y border-black/15 py-10">Henüz bülten abonesi yok.</p>
+              <div className="flex min-h-56 flex-col items-center justify-center p-8 text-center">
+                <Mail className="text-black/25" size={30} aria-hidden="true" />
+                <strong className="mt-4">Henüz bülten abonesi yok</strong>
+                <p className="mt-1 text-sm text-black/50">
+                  Yeni kayıtlar geldikçe bu liste otomatik güncellenecek.
+                </p>
+              </div>
             )}
           </section>
         )}
@@ -707,10 +909,10 @@ function Toast({ notification, onDismiss }: { notification: Notification; onDism
   return (
     <div
       role={success ? "status" : "alert"}
-      className={`fixed bottom-5 right-5 z-50 flex max-w-sm items-start gap-3 border p-4 shadow-lg ${
+      className={`fixed bottom-5 left-4 right-4 z-50 flex max-w-sm items-start gap-3 rounded-2xl border p-4 shadow-2xl sm:left-auto sm:right-5 ${
         success
-          ? "border-emerald-800 bg-emerald-50 text-emerald-950"
-          : "border-red-800 bg-red-50 text-red-950"
+          ? "border-emerald-200 bg-emerald-50 text-emerald-950"
+          : "border-red-200 bg-red-50 text-red-950"
       }`}
     >
       {success ? (
@@ -722,7 +924,7 @@ function Toast({ notification, onDismiss }: { notification: Notification; onDism
       <button
         type="button"
         onClick={onDismiss}
-        className="focus-ring -mr-1 -mt-1 shrink-0 p-1"
+        className="focus-ring -mr-1 -mt-1 shrink-0 rounded-lg p-1 transition hover:bg-black/5"
         aria-label="Bildirimi kapat"
       >
         <X size={16} />
@@ -752,7 +954,6 @@ function ProductEditor({
   onArchive?: () => void;
   onCancel: () => void;
 }) {
-  const input = "w-full border border-black/25 bg-white px-3 py-2 outline-none focus:border-black";
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
@@ -853,58 +1054,58 @@ function ProductEditor({
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6 border border-black bg-white p-5 sm:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-black/20 pb-5">
+    <form onSubmit={onSubmit} className={`${panel} space-y-7 p-5 sm:p-6`}>
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-black/10 pb-5">
         <div>
           <h2 className="display text-3xl">Ürün düzenle</h2>
-          <p className="mt-1 text-sm text-black/65">
+          <p className="mt-1 text-sm text-black/55">
             Bilgileri değiştir, ardından en alttaki kaydet düğmesini kullan.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button type="button" onClick={onCancel} className="focus-ring font-bold underline">
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={onCancel} className={ghostButton}>
             Vazgeç
           </button>
           {onArchive && (
             <button
               type="button"
               onClick={onArchive}
-              className="focus-ring flex items-center gap-1 font-bold"
+              className="focus-ring inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50"
             >
-              <Archive size={16} /> Arşivle
+              <Archive size={15} /> Arşivle
             </button>
           )}
         </div>
       </div>
       <section>
-        <h3 className="font-bold">Temel bilgiler</h3>
-        <p className="mt-1 text-sm text-black/65">Mağazada görünen ürün bilgileri.</p>
-        <label className="mt-4 block font-bold">
+        <h3 className="text-base font-bold">Temel bilgiler</h3>
+        <p className="mt-1 text-sm text-black/50">Mağazada görünen ürün bilgileri.</p>
+        <label className={`${adminLabel} mt-4`}>
           Ürün adı
           <input
             required
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className={`${input} mt-2`}
+            className={`${adminInput} mt-2`}
           />
         </label>
       </section>
-      <div className="grid gap-4 border-t border-black/15 pt-6 sm:grid-cols-2">
-        <label className="font-bold">
+      <div className="grid gap-4 border-t border-black/10 pt-6 sm:grid-cols-2">
+        <label className={adminLabel}>
           Slug
           <input
             required
             value={form.slug}
             onChange={(e) => setForm({ ...form, slug: e.target.value })}
-            className={`${input} mt-2`}
+            className={`${adminInput} mt-2`}
           />
         </label>
-        <label className="font-bold">
+        <label className={adminLabel}>
           Kategori
           <select
             value={form.categoryId}
             onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
-            className={`${input} mt-2`}
+            className={`${adminInput} mt-2`}
           >
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
@@ -914,20 +1115,20 @@ function ProductEditor({
           </select>
         </label>
       </div>
-      <label className="block border-t border-black/15 pt-6 font-bold">
+      <label className={`${adminLabel} border-t border-black/10 pt-6`}>
         Açıklama
         <textarea
           required
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
-          className={`${input} mt-2 min-h-28`}
+          className={`${adminInput} mt-2 min-h-32 resize-y`}
         />
       </label>
-      <section className="border-t border-black/15 pt-6">
-        <h3 className="font-bold">Satış ayarları</h3>
-        <p className="mt-1 text-sm text-black/65">Fiyat, görünürlük ve vitrin bilgileri.</p>
+      <section className="border-t border-black/10 pt-6">
+        <h3 className="text-base font-bold">Satış ayarları</h3>
+        <p className="mt-1 text-sm text-black/50">Fiyat, görünürlük ve vitrin bilgileri.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <label className="font-bold">
+          <label className={adminLabel}>
             Fiyat (₺)
             <input
               type="number"
@@ -941,10 +1142,10 @@ function ProductEditor({
                   price: e.target.value === "" ? "" : e.target.valueAsNumber,
                 })
               }
-              className={`${input} admin-number-input mt-2`}
+              className={`${adminInput} admin-number-input mt-2`}
             />
           </label>
-          <label className="font-bold">
+          <label className={adminLabel}>
             İndirim öncesi fiyat (₺)
             <input
               type="number"
@@ -958,17 +1159,17 @@ function ProductEditor({
                   compareAtPrice: e.target.value === "" ? null : Number(e.target.value),
                 })
               }
-              className={`${input} admin-number-input mt-2`}
+              className={`${adminInput} admin-number-input mt-2`}
             />
           </label>
-          <label className="font-bold">
+          <label className={adminLabel}>
             Durum
             <select
               value={form.status}
               onChange={(e) =>
                 setForm({ ...form, status: e.target.value as ProductForm["status"] })
               }
-              className={`${input} mt-2`}
+              className={`${adminInput} mt-2`}
             >
               {statuses.map((status) => (
                 <option key={status} value={status}>
@@ -977,39 +1178,40 @@ function ProductEditor({
               ))}
             </select>
           </label>
-          <label className="font-bold">
+          <label className={adminLabel}>
             Rozet
             <input
               value={form.badge ?? ""}
               onChange={(e) => setForm({ ...form, badge: e.target.value })}
-              className={`${input} mt-2`}
+              className={`${adminInput} mt-2`}
             />
           </label>
         </div>
-        <label className="mt-4 flex items-center gap-2 font-bold">
+        <label className="mt-5 flex items-center gap-2.5 text-sm font-semibold text-black/80">
           <input
             type="checkbox"
             checked={form.featured}
             onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+            className="h-4 w-4 rounded border-black/20 accent-black"
           />{" "}
           Ana sayfada öne çıkan ürün olarak göster
         </label>
       </section>
-      <section className="border-t border-black/15 pt-6">
-        <h3 className="font-bold">Ürün görselleri</h3>
-        <p className="mt-1 text-sm text-black/65">
+      <section className="border-t border-black/10 pt-6">
+        <h3 className="text-base font-bold">Ürün görselleri</h3>
+        <p className="mt-1 text-sm leading-5 text-black/50">
           İlk görsel ürünün kapak görseli olarak kullanılır. Mevcut görselin üzerine tıklayarak
           telefonundan veya bilgisayarından yenisini seçebilirsin.
         </p>
         {uploading && (
-          <p className="mt-3 border border-black/20 bg-fog p-3 font-semibold">
+          <p className="mt-4 rounded-xl border border-black/10 bg-fog/70 p-3.5 text-sm font-semibold">
             Görsel yükleniyor{uploadProgress === null ? "…" : `: %${uploadProgress}`}
           </p>
         )}
         {form.images.map((image, index) => (
           <div
             key={index}
-            className="mt-3 grid gap-3 border border-black/15 p-3 sm:grid-cols-[9rem_1fr]"
+            className="mt-4 grid gap-4 rounded-xl border border-black/10 bg-paper/50 p-3.5 sm:grid-cols-[9rem_1fr]"
           >
             <div>
               <p className="mb-2 text-xs font-bold uppercase tracking-wide text-black/55">
@@ -1023,7 +1225,7 @@ function ProductEditor({
               />
             </div>
             <div className="flex flex-col gap-3">
-              <label className="font-bold">
+              <label className={adminLabel}>
                 Alt metin
                 <input
                   placeholder="Örn. Siyah mekanik sanat tişörtü"
@@ -1036,7 +1238,7 @@ function ProductEditor({
                       ),
                     })
                   }
-                  className={`${input} mt-2`}
+                  className={`${adminInput} mt-2`}
                 />
               </label>
               <div className="flex flex-wrap gap-2">
@@ -1044,7 +1246,7 @@ function ProductEditor({
                   type="button"
                   disabled={index === 0}
                   onClick={() => moveImage(index, -1)}
-                  className="focus-ring flex items-center gap-1 border border-black/20 px-3 py-2 font-bold disabled:opacity-35"
+                  className={secondaryButton}
                 >
                   <ArrowUp size={15} /> Öne taşı
                 </button>
@@ -1052,7 +1254,7 @@ function ProductEditor({
                   type="button"
                   disabled={index === form.images.length - 1}
                   onClick={() => moveImage(index, 1)}
-                  className="focus-ring flex items-center gap-1 border border-black/20 px-3 py-2 font-bold disabled:opacity-35"
+                  className={secondaryButton}
                 >
                   <ArrowDown size={15} /> Arkaya taşı
                 </button>
@@ -1066,7 +1268,7 @@ function ProductEditor({
                       images: form.images.filter((_, entryIndex) => entryIndex !== index),
                     })
                   }
-                  className="focus-ring mt-auto flex w-fit items-center gap-1 font-bold"
+                  className="focus-ring mt-auto inline-flex w-fit items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-red-700 transition hover:bg-red-50"
                 >
                   <X size={16} /> Görseli kaldır
                 </button>
@@ -1076,15 +1278,15 @@ function ProductEditor({
         ))}
         <ImageAddButton disabled={uploading} onSelect={addImage} />
       </section>
-      <section className="border-t border-black/15 pt-6">
-        <h3 className="font-bold">Ürün seçenekleri ve stok</h3>
-        <p className="mt-1 text-sm text-black/65">
+      <section className="border-t border-black/10 pt-6">
+        <h3 className="text-base font-bold">Ürün seçenekleri ve stok</h3>
+        <p className="mt-1 text-sm text-black/50">
           Ürünün beden, renk veya model seçeneklerini ve stok miktarlarını yönetin.
         </p>
         {form.variants.map((variant, index) => (
-          <div key={index} className="mt-3 border border-black/15 p-4">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="font-bold">
+          <div key={index} className="mt-4 rounded-xl border border-black/10 bg-paper/50 p-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className={adminLabel}>
                 Seçenek adı
                 <input
                   required
@@ -1097,10 +1299,10 @@ function ProductEditor({
                       ),
                     })
                   }
-                  className={`${input} mt-2`}
+                  className={`${adminInput} mt-2`}
                 />
               </label>
-              <label className="font-bold">
+              <label className={adminLabel}>
                 SKU
                 <input
                   required
@@ -1113,10 +1315,10 @@ function ProductEditor({
                       ),
                     })
                   }
-                  className={`${input} mt-2`}
+                  className={`${adminInput} mt-2`}
                 />
               </label>
-              <label className="font-bold">
+              <label className={adminLabel}>
                 Beden
                 <input
                   placeholder="Örn. Standart veya M"
@@ -1129,10 +1331,10 @@ function ProductEditor({
                       ),
                     })
                   }
-                  className={`${input} mt-2`}
+                  className={`${adminInput} mt-2`}
                 />
               </label>
-              <label className="font-bold">
+              <label className={adminLabel}>
                 Stok adedi
                 <input
                   type="number"
@@ -1152,12 +1354,12 @@ function ProductEditor({
                       ),
                     })
                   }
-                  className={`${input} admin-number-input mt-2`}
+                  className={`${adminInput} admin-number-input mt-2`}
                 />
               </label>
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <label className="flex items-center gap-2 font-bold">
+              <label className="flex items-center gap-2.5 text-sm font-semibold text-black/80">
                 <input
                   type="checkbox"
                   checked={variant.active}
@@ -1169,6 +1371,7 @@ function ProductEditor({
                       ),
                     })
                   }
+                  className="h-4 w-4 rounded border-black/20 accent-black"
                 />
                 Satışa açık
               </label>
@@ -1181,7 +1384,7 @@ function ProductEditor({
                       variants: form.variants.filter((_, entryIndex) => entryIndex !== index),
                     })
                   }
-                  className="focus-ring font-bold underline"
+                  className="focus-ring rounded-lg px-2 py-1.5 text-sm font-semibold text-red-700 transition hover:bg-red-50"
                 >
                   Seçeneği kaldır
                 </button>
@@ -1209,15 +1412,12 @@ function ProductEditor({
               ],
             })
           }
-          className="focus-ring mt-3 flex items-center gap-1 font-bold"
+          className={`${secondaryButton} mt-4`}
         >
           <Plus size={15} /> Yeni seçenek ekle
         </button>
       </section>
-      <button
-        disabled={saving}
-        className="focus-ring flex w-full items-center justify-center gap-2 bg-black py-4 font-bold text-white disabled:opacity-50"
-      >
+      <button disabled={saving} className={`${primaryButton} w-full py-3.5 text-base`}>
         <Save size={17} /> {saving ? "Kaydediliyor…" : "Değişiklikleri kaydet"}
       </button>
     </form>
@@ -1243,12 +1443,12 @@ function ImagePicker({
   };
 
   return (
-    <div className="relative aspect-square overflow-hidden bg-fog">
+    <div className="relative aspect-square overflow-hidden rounded-xl border border-black/10 bg-fog/70 shadow-sm">
       <button
         type="button"
         disabled={disabled}
         onClick={() => inputRef.current?.click()}
-        className="group relative h-full w-full text-left disabled:cursor-wait"
+        className="focus-ring group relative h-full w-full text-left disabled:cursor-wait"
         aria-label={image.url ? "Görseli değiştir" : "Görsel seç"}
       >
         {image.url ? (
@@ -1260,11 +1460,12 @@ function ImagePicker({
             className="object-cover"
           />
         ) : (
-          <span className="flex h-full items-center justify-center px-4 text-center text-sm font-semibold text-black/55">
+          <span className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center text-sm font-semibold text-black/50">
+            <ImageIcon size={22} aria-hidden="true" />
             Görsel seçmek için tıkla
           </span>
         )}
-        <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 bg-black/75 px-2 py-2 text-center text-xs font-bold text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+        <span className="absolute inset-x-2 bottom-2 flex items-center justify-center gap-2 rounded-lg bg-black/80 px-2 py-2 text-center text-xs font-bold text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
           <Upload size={14} /> {image.url ? "Görseli değiştir" : "Görsel seç"}
         </span>
       </button>
@@ -1299,7 +1500,7 @@ function ImageAddButton({
         type="button"
         disabled={disabled}
         onClick={() => inputRef.current?.click()}
-        className="focus-ring mt-3 flex items-center gap-1 font-bold disabled:cursor-wait disabled:opacity-50"
+        className={`${secondaryButton} mt-4`}
       >
         <Plus size={15} /> Bilgisayardan veya telefondan görsel yükle
       </button>
@@ -1328,8 +1529,7 @@ function OrderActions({
 }) {
   const [shippingCarrier, setShippingCarrier] = useState(order.shippingCarrier ?? "");
   const [trackingNumber, setTrackingNumber] = useState(order.trackingNumber ?? "");
-  const buttonClass =
-    "focus-ring whitespace-nowrap border border-black bg-black px-3 py-2 text-xs font-bold text-white disabled:cursor-wait disabled:opacity-50";
+  const buttonClass = `${primaryButton} whitespace-nowrap px-3 py-2 text-xs`;
 
   async function submit(status: string) {
     try {
@@ -1353,7 +1553,7 @@ function OrderActions({
             void submit("CANCELLED");
           }
         }}
-        className={buttonClass}
+        className="focus-ring whitespace-nowrap rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 transition hover:bg-red-100 disabled:pointer-events-none disabled:opacity-50"
       >
         Siparişi iptal et
       </button>
@@ -1375,22 +1575,22 @@ function OrderActions({
 
   if (order.status === "PREPARING") {
     return (
-      <div className="min-w-48 space-y-2">
-        <label className="block text-xs font-bold">
+      <div className="min-w-52 space-y-2.5 rounded-xl border border-black/10 bg-paper/70 p-3">
+        <label className="block text-xs font-semibold text-black/70">
           Kargo firması
           <input
             value={shippingCarrier}
             onChange={(event) => setShippingCarrier(event.target.value)}
             placeholder="Örn. Yurtiçi Kargo"
-            className="mt-1 w-full border border-black/30 px-2 py-2 font-normal"
+            className={`${adminInput} mt-1.5 px-2.5 py-2 text-xs font-normal shadow-none`}
           />
         </label>
-        <label className="block text-xs font-bold">
+        <label className="block text-xs font-semibold text-black/70">
           Takip numarası
           <input
             value={trackingNumber}
             onChange={(event) => setTrackingNumber(event.target.value)}
-            className="mt-1 w-full border border-black/30 px-2 py-2 font-normal"
+            className={`${adminInput} mt-1.5 px-2.5 py-2 text-xs font-normal shadow-none`}
           />
         </label>
         <button
@@ -1432,49 +1632,50 @@ function CategoryEditor({
   saving: boolean;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
-  const input =
-    "mt-2 w-full border border-black/25 bg-white px-3 py-2 outline-none focus:border-black";
   return (
-    <form onSubmit={onSubmit} className="space-y-5 border border-black p-5">
-      <h2 className="display text-3xl">Kategori</h2>
-      <label className="block font-bold">
+    <form onSubmit={onSubmit} className={`${panel} space-y-5 p-5 sm:p-6`}>
+      <div className="border-b border-black/10 pb-5">
+        <h2 className="display text-3xl">Kategori düzenle</h2>
+        <p className="mt-1 text-sm text-black/50">
+          Kategorinin mağazada nasıl görüneceğini düzenle.
+        </p>
+      </div>
+      <label className={adminLabel}>
         Ad
         <input
           required
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className={input}
+          className={`${adminInput} mt-2`}
         />
       </label>
-      <label className="block font-bold">
+      <label className={adminLabel}>
         Slug
         <input
           required
           value={form.slug}
           onChange={(e) => setForm({ ...form, slug: e.target.value })}
-          className={input}
+          className={`${adminInput} mt-2`}
         />
       </label>
-      <label className="block font-bold">
+      <label className={adminLabel}>
         Açıklama
         <textarea
           value={form.description ?? ""}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
-          className={`${input} min-h-28`}
+          className={`${adminInput} mt-2 min-h-32 resize-y`}
         />
       </label>
-      <label className="flex items-center gap-2 font-bold">
+      <label className="flex items-center gap-2.5 text-sm font-semibold text-black/80">
         <input
           type="checkbox"
           checked={form.active}
           onChange={(e) => setForm({ ...form, active: e.target.checked })}
+          className="h-4 w-4 rounded border-black/20 accent-black"
         />{" "}
         Yayında
       </label>
-      <button
-        disabled={saving}
-        className="focus-ring flex w-full items-center justify-center gap-2 bg-black py-4 font-bold text-white"
-      >
+      <button disabled={saving} className={`${primaryButton} w-full py-3.5 text-base`}>
         <Check size={17} /> Kaydet
       </button>
     </form>
