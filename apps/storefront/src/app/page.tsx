@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Campaign } from "@/components/home/Campaign";
+import { CultureWorlds } from "@/components/home/CultureWorlds";
+import { HomeShopShowcase } from "@/components/home/HomeShopShowcase";
 import { ProductSection } from "@/components/commerce/ProductSection";
 import { EditorialGrid } from "@/components/home/EditorialGrid";
 import { Footer } from "@/components/layout/Footer";
@@ -28,6 +30,8 @@ export default async function Home() {
         products={featuredProducts}
         href="/collections/new-arrivals"
       />
+      <HomeShopShowcase />
+      <CultureWorlds />
       <Campaign
         image="/campaign/campaign-wide.jpg"
         kicker="Hareket çalışmaları / 01"
