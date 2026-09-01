@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getProducts } from "@/data/products";
+import { articles } from "@/data/journal";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -12,6 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/motor",
     "/contact",
     "/journal",
+    ...articles.map((article) => `/journal/${article.slug}`),
     "/collections/new-arrivals",
     "/collections/clothing",
     "/collections/accessories",

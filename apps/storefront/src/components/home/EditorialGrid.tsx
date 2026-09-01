@@ -1,11 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-const cards = [
-  { title: "Saha Notları", pos: "object-left", img: "/campaign/campaign-wide.jpg" },
-  { title: "Yol Deneyimleri", pos: "object-center", img: "/campaign/campaign-portrait.jpg" },
-  { title: "Atölye", pos: "object-right", img: "/campaign/campaign-wide.jpg" },
-];
+import { articles } from "@/data/journal";
+
 export function EditorialGrid() {
   return (
     <section className="shell section-space">
@@ -16,21 +13,27 @@ export function EditorialGrid() {
         </Link>
       </div>
       <div className="grid gap-2 md:grid-cols-3">
-        {cards.map((c, i) => (
+        {articles.map((article) => (
           <Link
-            href="/journal"
-            key={c.title}
+            href={`/journal/${article.slug}`}
+            key={article.slug}
             className="focus-ring group relative aspect-[4/5] overflow-hidden"
           >
             <Image
-              src={c.img}
-              alt=""
+              src={article.image}
+              alt={article.title}
               fill
-              className={`object-cover ${c.pos} transition duration-700 group-hover:scale-[1.02]`}
+              className="object-cover transition duration-700 group-hover:scale-[1.02]"
+              style={{ objectPosition: article.imagePosition }}
               sizes="(max-width:767px) 100vw,33vw"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-            <h3 className="display absolute bottom-7 left-6 text-3xl text-white">{c.title}</h3>
+            <div className="absolute inset-x-0 bottom-0 p-6 text-white md:p-7">
+              <h3 className="display text-4xl leading-none md:text-5xl">{article.title}</h3>
+              <p className="mt-3 max-w-sm text-xs font-semibold leading-5 text-white/70 md:text-sm">
+                {article.cardDescription}
+              </p>
+            </div>
           </Link>
         ))}
       </div>

@@ -1,12 +1,19 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { articles } from "@/data/journal";
 import { Footer } from "@/components/layout/Footer";
+
+export const metadata: Metadata = {
+  title: "Yoldan Hikâyeler",
+  description: "Kahve, dövme ve motor kültürünün arkasındaki Binks Machina hikâyeleri.",
+};
+
 export default function Journal() {
   return (
     <main>
       <section className="shell py-12">
-        <h1 className="display mb-12 text-6xl">Hikâyeler</h1>
+        <h1 className="display mb-12 text-6xl">Yoldan Hikâyeler</h1>
         <div className="grid gap-12 md:grid-cols-3">
           {articles.map((a) => (
             <article key={a.slug}>
@@ -16,9 +23,11 @@ export default function Journal() {
               >
                 <Image
                   src={a.image}
-                  alt=""
+                  alt={a.title}
                   fill
                   className="object-cover transition duration-500 hover:scale-[1.02]"
+                  style={{ objectPosition: a.imagePosition }}
+                  sizes="(max-width: 767px) 100vw, 33vw"
                 />
               </Link>
               <p className="mt-5 text-xs">{a.date}</p>
