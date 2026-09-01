@@ -36,7 +36,6 @@ export default async function Home() {
       <CultureWorlds />
       <Campaign
         image={cultureMedia.motor.lineup}
-        kicker="Hareket çalışmaları / 01"
         title="Şehir sınırları yalnızca bir öneridir."
         portrait
         position="center 66%"
@@ -66,13 +65,13 @@ function CampaignTile({ image, title, slug }: { image: string; title: string; sl
   return (
     <Link
       href={`/collections/${slug}`}
-      className="group relative block aspect-[4/5] overflow-hidden bg-black"
+      className="group relative block aspect-[3/4] overflow-hidden bg-black"
     >
       <Image
         src={image}
         alt=""
         fill
-        className="object-cover transition duration-700 group-hover:scale-[1.02]"
+        className="object-cover transition duration-700 group-hover:scale-[1.015]"
         sizes="(max-width:767px) 100vw,50vw"
       />
       <span className="display absolute bottom-6 left-6 text-4xl text-white">{title} →</span>

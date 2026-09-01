@@ -35,13 +35,13 @@ export function CultureWorlds() {
           <Link
             key={world.href}
             href={world.href}
-            className="focus-ring group relative block aspect-[4/5] w-[82vw] shrink-0 snap-center overflow-hidden bg-black text-white md:w-auto"
+            className="focus-ring group relative block aspect-[3/4] w-[82vw] shrink-0 snap-center overflow-hidden bg-black text-white md:w-auto"
           >
             <Image
               src={world.image}
               alt={`${world.title} dünyasını keşfet`}
               fill
-              className="object-cover transition duration-700 ease-out group-hover:scale-[1.035]"
+              className="object-cover transition duration-700 ease-out group-hover:scale-[1.015]"
               style={{ objectPosition: world.position }}
               sizes="(max-width: 767px) 82vw, 33vw"
             />

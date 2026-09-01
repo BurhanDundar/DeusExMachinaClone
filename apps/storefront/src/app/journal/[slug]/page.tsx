@@ -61,7 +61,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             <div className="flex flex-col justify-between bg-black p-7 text-white md:col-span-5 md:min-h-[520px] md:p-10 lg:p-12">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-[.22em] text-[var(--story-accent)]">
-                  {article.theme} · {article.date}
+                  {article.theme}
                 </p>
                 <h1 className="display mt-5 text-6xl leading-[.82] tracking-[-.055em] md:text-7xl lg:text-8xl">
                   {article.title}

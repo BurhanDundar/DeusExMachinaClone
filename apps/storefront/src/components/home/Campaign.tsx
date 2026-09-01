@@ -21,7 +21,7 @@ export function Campaign({
     <section className="shell">
       <Link
         href="/collections/new-arrivals"
-        className={`focus-ring group relative block overflow-hidden ${portrait ? "aspect-[4/5] md:aspect-[16/7]" : "aspect-[4/5] md:aspect-video"}`}
+        className="focus-ring group relative block aspect-[3/4] overflow-hidden md:aspect-video"
       >
         <Image
           src={image}

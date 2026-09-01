@@ -17,13 +17,13 @@ export function EditorialGrid() {
           <Link
             href={`/journal/${article.slug}`}
             key={article.slug}
-            className="focus-ring group relative aspect-[4/5] overflow-hidden"
+            className="focus-ring group relative aspect-[3/4] overflow-hidden"
           >
             <Image
               src={article.image}
               alt={article.title}
               fill
-              className="object-cover transition duration-700 group-hover:scale-[1.02]"
+              className="object-cover transition duration-700 group-hover:scale-[1.015]"
               style={{ objectPosition: article.imagePosition }}
               sizes="(max-width:767px) 100vw,33vw"
             />

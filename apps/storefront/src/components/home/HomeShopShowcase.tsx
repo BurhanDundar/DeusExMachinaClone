@@ -139,7 +139,7 @@ export function HomeShopShowcase() {
       <section className="shell mt-3 md:mt-4">
         <Link
           href="/collections/new-arrivals"
-          className="focus-ring group relative block min-h-[520px] overflow-hidden bg-black text-white md:min-h-[680px]"
+          className="focus-ring group relative block aspect-[3/4] overflow-hidden bg-black text-white md:aspect-video"
         >
           <Image
             src={cultureMedia.motor.portrait}
