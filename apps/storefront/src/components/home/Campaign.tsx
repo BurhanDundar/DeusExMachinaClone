@@ -6,11 +6,13 @@ export function Campaign({
   title,
   kicker,
   portrait = false,
+  position,
 }: {
   image: string;
   title: string;
   kicker: string;
   portrait?: boolean;
+  position?: string;
 }) {
   return (
     <section className="shell">
@@ -23,9 +25,8 @@ export function Campaign({
           alt=""
           fill
           priority={!portrait}
-          className={`object-cover transition duration-700 group-hover:scale-[1.015] ${
-            !portrait ? "object-[center_18%] md:object-top" : "object-center"
-          }`}
+          className="object-cover transition duration-700 group-hover:scale-[1.015]"
+          style={{ objectPosition: position ?? (!portrait ? "center 18%" : "center") }}
           sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/5" />

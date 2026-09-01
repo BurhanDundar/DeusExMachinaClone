@@ -4,8 +4,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
-import { articles } from "@/data/journal";
 import { Footer } from "@/components/layout/Footer";
+import { articles } from "@/data/journal";
+
+const galleryLayouts = [
+  "col-span-2 aspect-[4/3] md:col-span-7",
+  "col-span-1 aspect-square md:col-span-5",
+  "col-span-1 aspect-[4/5] md:col-span-4",
+  "col-span-1 aspect-[4/5] md:col-span-4",
+  "col-span-1 aspect-[4/5] md:col-span-4",
+  "col-span-2 aspect-[16/9] md:col-span-8 md:col-start-3",
+] as const;
 
 export function generateStaticParams() {
   return articles.map((article) => ({ slug: article.slug }));
@@ -39,125 +48,126 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
   return (
     <main style={pageStyle}>
-      <article>
-        <header className="shell">
-          <div className="relative min-h-[calc(100svh-96px)] overflow-hidden bg-black text-white">
-            <Image
-              src={article.image}
-              alt={article.title}
-              fill
-              priority
-              className="object-cover"
-              style={{ objectPosition: article.imagePosition }}
-              sizes="100vw"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-black/15" />
-            <Link
-              href="/journal"
-              className="focus-ring absolute left-5 top-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[.16em] md:left-10 md:top-9"
-            >
-              <ArrowLeft size={17} /> Tüm hikâyeler
-            </Link>
-            <div className="absolute inset-x-0 bottom-0 max-w-5xl p-6 md:p-12 lg:p-16">
-              <p className="text-xs font-bold uppercase tracking-[.22em] text-[var(--story-accent)]">
-                {article.theme} · {article.date}
-              </p>
-              <h1 className="display mt-4 text-[clamp(4rem,11vw,9rem)] leading-[.78] tracking-[-.06em]">
-                {article.title}
-              </h1>
-              <p className="mt-7 max-w-2xl text-base leading-7 text-white/75 md:text-lg">
-                {article.excerpt}
-              </p>
+      <article className="shell mx-auto max-w-[1600px]">
+        <header className="py-8 md:py-12">
+          <Link
+            href="/journal"
+            className="focus-ring inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[.16em]"
+          >
+            <ArrowLeft size={16} /> Tüm hikâyeler
+          </Link>
+
+          <div className="mt-8 grid gap-3 md:grid-cols-12">
+            <div className="flex flex-col justify-between bg-black p-7 text-white md:col-span-5 md:min-h-[520px] md:p-10 lg:p-12">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[.22em] text-[var(--story-accent)]">
+                  {article.theme} · {article.date}
+                </p>
+                <h1 className="display mt-5 text-6xl leading-[.82] tracking-[-.055em] md:text-7xl lg:text-8xl">
+                  {article.title}
+                </h1>
+              </div>
+              <div className="mt-16 border-t border-white/20 pt-6">
+                <p className="display text-2xl leading-tight md:text-3xl">{article.cardDescription}</p>
+                <p className="mt-4 max-w-md text-sm leading-6 text-white/60">{article.excerpt}</p>
+              </div>
             </div>
+
+            <figure className="relative min-h-[420px] overflow-hidden bg-black md:col-span-7 md:min-h-[520px]">
+              <Image
+                src={article.image}
+                alt={article.title}
+                fill
+                priority
+                className="object-cover"
+                style={{ objectPosition: article.imagePosition }}
+                sizes="(max-width: 767px) 100vw, 58vw"
+              />
+              <span className="absolute bottom-4 right-4 bg-black px-3 py-2 text-[10px] font-bold uppercase tracking-[.18em] text-white">
+                Kapak / 00
+              </span>
+            </figure>
           </div>
         </header>
 
-        <section className="shell py-20 md:py-32">
-          <div className="grid gap-10 border-t border-black/20 pt-8 md:grid-cols-[1fr_2fr]">
-            <p className="text-xs font-bold uppercase tracking-[.2em]">Süreç günlüğü</p>
-            <p className="display max-w-5xl text-4xl leading-[.98] md:text-6xl">{article.lead}</p>
+        <section className="border-t border-black/15 py-12 md:py-16" aria-label="Görsel günlük">
+          <div className="mb-8 flex items-end justify-between">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[.2em] text-black/45">
+                Görsel günlük
+              </p>
+              <h2 className="display mt-2 text-3xl md:text-4xl">Masadan, stüdyodan, yoldan.</h2>
+            </div>
+            <span className="text-xs font-bold text-black/40">01 — 06</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-12 md:gap-3">
+            {article.gallery.map((galleryImage, index) => (
+              <figure
+                key={galleryImage.src}
+                className={`group relative overflow-hidden bg-black ${galleryLayouts[index]}`}
+              >
+                <Image
+                  src={galleryImage.src}
+                  alt={galleryImage.alt}
+                  fill
+                  className="object-cover transition duration-700 group-hover:scale-[1.02]"
+                  style={{ objectPosition: galleryImage.position ?? "center" }}
+                  sizes="(max-width: 767px) 50vw, 45vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+                <span className="absolute bottom-3 left-3 text-[10px] font-bold tracking-[.18em] text-white md:bottom-4 md:left-4">
+                  0{index + 1}
+                </span>
+              </figure>
+            ))}
           </div>
         </section>
 
-        <section className="shell grid gap-2 md:grid-cols-2">
-          {article.gallery.slice(0, 2).map((galleryImage, index) => (
-            <figure
-              key={galleryImage.src}
-              className={`relative overflow-hidden bg-black ${
-                index === 0 ? "aspect-[4/5]" : "aspect-[4/5] md:mt-24"
-              }`}
-            >
-              <Image
-                src={galleryImage.src}
-                alt={galleryImage.alt}
-                fill
-                className="object-cover"
-                style={{ objectPosition: galleryImage.position ?? "center" }}
-                sizes="(max-width: 767px) 100vw, 50vw"
-              />
-            </figure>
-          ))}
-        </section>
-
-        <section className="shell py-20 md:py-32">
-          <div className="divide-y divide-black/20 border-y border-black/20">
+        <section className="border-t border-black/15 py-12 md:py-16">
+          <div className="grid gap-px border border-black/15 bg-black/15 md:grid-cols-3">
             {article.sections.map((section) => (
-              <section
-                key={section.number}
-                className="grid gap-5 py-10 md:grid-cols-[90px_1fr_1fr] md:gap-10 md:py-14"
-              >
-                <span className="text-sm font-bold text-black/40">{section.number}</span>
-                <h2 className="display text-4xl md:text-5xl">{section.title}</h2>
-                <p className="max-w-xl text-base leading-7 text-black/65">{section.body}</p>
-              </section>
+              <div key={section.number} className="bg-paper p-6 md:min-h-52 md:p-8">
+                <span className="text-xs font-bold text-black/35">{section.number}</span>
+                <h2 className="display mt-8 text-3xl">{section.title}</h2>
+                <p className="mt-3 max-w-sm text-sm leading-6 text-black/60">{section.body}</p>
+              </div>
             ))}
           </div>
         </section>
 
         {article.video ? (
-          <section className="shell pb-3 md:pb-4">
+          <section className="border-t border-black/15 py-12 md:py-16">
             <video
               controls
               playsInline
               preload="metadata"
               poster={article.video.poster}
-              className="aspect-video w-full bg-black object-cover"
+              className="mx-auto aspect-video w-full max-w-5xl bg-black object-cover"
             >
               <source src={article.video.src} />
             </video>
-            <p className="mt-3 text-sm text-black/55">{article.video.caption}</p>
+            <p className="mx-auto mt-3 max-w-5xl text-sm text-black/55">
+              {article.video.caption}
+            </p>
           </section>
         ) : null}
 
-        <section className="shell grid gap-2 pb-20 md:grid-cols-[1.2fr_.8fr] md:pb-32">
-          <figure className="relative aspect-[16/10] overflow-hidden bg-black">
-            <Image
-              src={article.gallery[2].src}
-              alt={article.gallery[2].alt}
-              fill
-              className="object-cover"
-              style={{ objectPosition: article.gallery[2].position ?? "center" }}
-              sizes="(max-width: 767px) 100vw, 60vw"
-            />
-          </figure>
-          <blockquote className="display flex min-h-80 items-center bg-black p-8 text-4xl leading-none text-white md:p-12 md:text-5xl">
-            <span>
-              <span className="text-[var(--story-accent)]">“</span>
-              {article.quote}
-            </span>
-          </blockquote>
-        </section>
+        <blockquote className="display border-y border-black/15 py-12 text-4xl leading-none md:py-16 md:text-6xl">
+          <span className="text-[var(--story-accent)]">“</span>
+          {article.quote}
+        </blockquote>
 
-        <section className="shell pb-3 md:pb-4">
+        <section className="py-3 md:py-4">
           <Link
             href={`/journal/${nextArticle.slug}`}
-            className="focus-ring group flex min-h-56 items-end justify-between bg-[var(--story-accent)] p-7 md:min-h-72 md:p-12"
+            className="focus-ring group flex min-h-40 items-end justify-between bg-[var(--story-accent)] p-6 md:min-h-48 md:p-9"
           >
             <div>
-              <p className="text-xs font-bold uppercase tracking-[.2em]">Sıradaki hikâye</p>
-              <h2 className="display mt-3 text-4xl md:text-6xl">{nextArticle.title}</h2>
+              <p className="text-[11px] font-bold uppercase tracking-[.2em]">Sıradaki hikâye</p>
+              <h2 className="display mt-2 text-3xl md:text-5xl">{nextArticle.title}</h2>
             </div>
-            <ArrowRight className="size-9 transition-transform group-hover:translate-x-2 md:size-12" />
+            <ArrowRight className="size-8 transition-transform group-hover:translate-x-2 md:size-10" />
           </Link>
         </section>
       </article>

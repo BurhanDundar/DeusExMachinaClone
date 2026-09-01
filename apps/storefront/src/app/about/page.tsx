@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Footer } from "@/components/layout/Footer";
+import { cultureMedia } from "@/data/culture-media";
 
 export default function AboutPage() {
   return (
@@ -27,7 +28,7 @@ export default function AboutPage() {
           <div className="grid grid-cols-2 gap-3">
             <figure className="relative aspect-[4/5] overflow-hidden bg-fog">
               <Image
-                src="/campaign/campaign-portrait.jpg"
+                src={cultureMedia.motor.cafe}
                 alt="Binks Machina topluluğu"
                 fill
                 className="object-cover"
@@ -36,7 +37,7 @@ export default function AboutPage() {
             </figure>
             <figure className="relative aspect-[4/5] overflow-hidden bg-fog">
               <Image
-                src="/campaign/campaign-portrait.png"
+                src={cultureMedia.kahve.pourOver}
                 alt="Binks Machina tarzı"
                 fill
                 className="object-cover"
@@ -48,7 +49,7 @@ export default function AboutPage() {
         <section className="mt-16 grid gap-10 lg:grid-cols-2 lg:gap-16">
           <figure className="relative aspect-[16/10] overflow-hidden bg-fog">
             <Image
-              src="/campaign/campaign-wide.jpg"
+              src={cultureMedia.dovme.session}
               alt="Binks Machina yolda"
               fill
               className="object-cover"

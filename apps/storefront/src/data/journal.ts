@@ -1,3 +1,5 @@
+import { cultureMedia } from "@/data/culture-media";
+
 export type JournalArticle = {
   slug: string;
   theme: string;
@@ -25,39 +27,51 @@ export const articles: JournalArticle[] = [
     excerpt: "Bir fincanın arkasındaki denemeler, sabah ritüelleri ve atölye sohbetleri.",
     lead:
       "Kahveyi menüye eklemek kolaydı; ona bize ait bir karakter vermek zaman aldı. Bu hikâye, tadım masasındaki ilk kararsızlıktan herkesin kendi fincanını bulduğu güne kadar tuttuğumuz notlardan oluşuyor.",
-    image: "/products/binks/atolye-seti.jpeg",
-    imagePosition: "center 68%",
+    image: cultureMedia.kahve.pourOver,
+    imagePosition: "center",
     accent: "#d7ff38",
     quote: "İyi bir fikir bazen motor sesiyle değil, öğütücünün ilk sesiyle başlıyor.",
     sections: [
       {
         number: "01",
         title: "İlk demleme",
-        body: "İlk reçetelerimiz fazla sertti. Sonra kahvenin gücünü yoğunluktan değil, dengeden aldığını fark ettik. Gramları, sıcaklığı ve süreyi tekrar tekrar değiştirirken aslında mekânın sabah ritmini de kuruyorduk.",
+        body: "Gramları, sıcaklığı ve süreyi değiştirerek mekânın sabah ritmini bulduk.",
       },
       {
         number: "02",
         title: "Ortak masa",
-        body: "Tadımlar kısa sürede ekip toplantılarına, çizim seanslarına ve rota konuşmalarına dönüştü. Kahve barı ayrı bir bölüm olmaktan çıktı; atölyenin herkesle kesişen merkezi oldu.",
+        body: "Tadım masası kısa sürede çizimlerin ve rota sohbetlerinin ortak masasına dönüştü.",
       },
       {
         number: "03",
         title: "Her gün yeniden",
-        body: "Aynı çekirdek her gün aynı davranmıyor. Biz de ölçüyor, tadıyor ve küçük ayarlar yapıyoruz. Tutarlılığın ezberden değil, dikkat göstermekten geldiğini burada öğrendik.",
+        body: "Her gün ölçüyor, tadıyor ve küçük ayarlarla aynı karakteri yeniden arıyoruz.",
       },
     ],
     gallery: [
       {
-        src: "/products/binks/gomlek-fume-is.jpeg",
-        alt: "Binks Machina atölye masası",
+        src: cultureMedia.kahve.espresso,
+        alt: "Espresso hazırlanırken",
       },
       {
-        src: "/products/binks/defter-ilk-seri.jpeg",
-        alt: "Atölyede tutulan kahve ve tasarım notları",
+        src: cultureMedia.kahve.steam,
+        alt: "Kahve hazırlığından buharlı bir detay",
       },
       {
-        src: "/products/binks/koleksiyon-seti.jpeg",
-        alt: "Atölye günlüğünden bir detay",
+        src: cultureMedia.kahve.barista,
+        alt: "Barista tezgâh başında",
+      },
+      {
+        src: cultureMedia.kahve.window,
+        alt: "Kahve dükkânının camından bir kare",
+      },
+      {
+        src: cultureMedia.kahve.hero,
+        alt: "Kahve mekânından içeriye bakış",
+      },
+      {
+        src: cultureMedia.kahve.pourOver,
+        alt: "Pour-over demleme ritüeli",
       },
     ],
   },
@@ -70,39 +84,51 @@ export const articles: JournalArticle[] = [
     excerpt: "Bir fikrin eskizden tene geçerken değiştirdiği biçimler ve bize öğrettikleri.",
     lead:
       "Her çizim kâğıt üzerinde tamamlanmış görünür; tenle buluştuğunda yeniden yaşamaya başlar. Bu sayfalar, ilk konuşmadan son kontrole kadar verdiğimiz kararları ve her işten geriye kalan küçük dersleri anlatıyor.",
-    image: "/products/binks/bandana-dovme-makinesi.jpeg",
+    image: cultureMedia.dovme.session,
     imagePosition: "center",
     accent: "#ff4b36",
-    quote: "Çizgiyi kalıcı yapan mürekkep değil, arkasındaki niyet.",
+    quote: "Çizgiyi kalıcı yapan mürekkep değil, arkasındaki hikaye.",
     sections: [
       {
         number: "01",
         title: "Dinlemek",
-        body: "İyi bir tasarım çizimle değil, doğru soruyla başladı. İnsanların taşıdığı referansların ardındaki duyguyu anlamaya çalıştık; bazen ilk fikirden vazgeçmek sürecin en doğru kararı oldu.",
+        body: "İlk çizgiden önce referansların ardındaki duyguyu dinledik.",
       },
       {
         number: "02",
         title: "Çizgiyi aramak",
-        body: "Yerleşim denemeleri, farklı kalınlıklar ve tekrar tekrar basılan şablonlar… Kâğıtta güçlü duran bir ayrıntının hareket eden bedende nasıl değiştiğini her provada yeniden gördük.",
+        body: "Farklı kalınlık ve yerleşimleri deneyerek çizginin bedenle nasıl hareket ettiğini gördük.",
       },
       {
         number: "03",
         title: "Sonrası",
-        body: "Uygulama bittiğinde hikâye bitmiyor. İyileşme sürecini takip etmek ve yıllar sonra hâlâ güçlü kalacak bir iş üretmek, stüdyodaki bütün kararlarımızı etkiliyor.",
+        body: "İyileşme sürecini takip etmek, uygulama kadar önemli bir parçamız oldu.",
       },
     ],
     gallery: [
       {
-        src: "/products/binks/atolye-seti.jpeg",
-        alt: "Dövme makinesi çizimlerinin yer aldığı atölye seti",
+        src: cultureMedia.dovme.studio,
+        alt: "Dövme stüdyosunun çalışma alanı",
       },
       {
-        src: "/products/binks/tisort-mekanik-sanat.jpeg",
-        alt: "Mekanik dövme çizgilerinden ilham alan çalışma",
+        src: cultureMedia.dovme.color,
+        alt: "Renkli dövme çalışması",
       },
       {
-        src: "/products/binks/bandana-paisley-koleksiyonu-detay.jpeg",
-        alt: "Desen ve çizgi detayları",
+        src: cultureMedia.dovme.artwork,
+        alt: "Tamamlanmış dövme detayı",
+      },
+      {
+        src: cultureMedia.dovme.portrait,
+        alt: "Stüdyodan portre ve dövme detayı",
+      },
+      {
+        src: cultureMedia.dovme.hero,
+        alt: "Dövme uygulama sürecinden bir kare",
+      },
+      {
+        src: cultureMedia.dovme.session,
+        alt: "Sanatçı ve müşteri uygulama sırasında",
       },
     ],
   },
@@ -115,40 +141,52 @@ export const articles: JournalArticle[] = [
     excerpt: "Garajda başlayan, şehir sınırının dışında tamamlanan bir yol günlüğü.",
     lead:
       "Plan basitti: gün doğmadan buluşmak ve yol nereye götürürse oraya gitmek. Fakat her yolculuk gibi bu da makineyi, ekipmanı ve birlikte hareket etmenin ne demek olduğunu yeniden düşünmemize neden oldu.",
-    image: "/campaign/campaign-portrait.png",
-    imagePosition: "center 22%",
+    image: cultureMedia.motor.road,
+    imagePosition: "center 58%",
     accent: "#63d4ff",
-    quote: "Yolun en iyi kısmı, haritadaki çizginin bittiği yerde başladı.",
+    quote: "Yolun en iyi kısmı, haritadaki çizginin bittiği yerde başlar.",
     sections: [
       {
         number: "01",
         title: "Garaj saati",
-        body: "Sürüşten önceki sessizlik hep aynı: lastik basıncı, zincir, yakıt ve son bir kahve. Yolda sorun çıkarmayan her ayrıntının arkasında garajda geçirilen sabırlı bir saat olduğunu tekrar hatırladık.",
+        body: "Lastik, zincir, yakıt ve son bir kahve: yol garajdaki sessizlikte başladı.",
       },
       {
         number: "02",
         title: "Şehir çizgisi",
-        body: "Trafik geride kalınca hızdan çok ritim önem kazandı. Rüzgâr, yol yüzeyi ve öndeki sürücünün hareketleri aynı dilin parçaları oldu; ekip olmanın konuşmadan da mümkün olduğunu gördük.",
+        body: "Trafik geride kalınca hız değil, aynı ritimde hareket etmek önem kazandı.",
       },
       {
         number: "03",
         title: "Dönüş yolu",
-        body: "Eve dönerken not aldığımız ilk şey kilometre değildi. Hangi parça işe yaradı, hangi cep yanlış yerdeydi, neyi daha sade yapabilirdik? Yeni ürünlerin bir kısmı tam olarak bu dönüş konuşmalarından doğdu.",
+        body: "Dönüşte kilometreyi değil, yolda neyin gerçekten işe yaradığını konuştuk.",
       },
     ],
     gallery: [
       {
-        src: "/campaign/campaign-wide.png",
-        alt: "Yağmurlu yolda Binks Machina",
-        position: "68% center",
+        src: cultureMedia.motor.hero,
+        alt: "Dağ yolunda iki motosiklet",
+        position: "center",
       },
       {
-        src: "/products/binks/sapka-motor-nakis.jpeg",
-        alt: "Motor nakışı ve yol ekipmanı detayı",
+        src: cultureMedia.motor.lineup,
+        alt: "Buluşma noktasında sıralanan motosikletler",
       },
       {
-        src: "/products/binks/defter-ilk-seri.jpeg",
-        alt: "Yolculuktan ilham alan mekanik çizimler",
+        src: cultureMedia.motor.cafe,
+        alt: "Kahve ve motor buluşma noktası",
+      },
+      {
+        src: cultureMedia.motor.helmets,
+        alt: "Sürüş öncesi kasklar ve motosikletler",
+      },
+      {
+        src: cultureMedia.motor.lake,
+        alt: "Göl kıyısındaki yol molası",
+      },
+      {
+        src: cultureMedia.motor.detail,
+        alt: "Kask, çay ve yol molası",
       },
     ],
   },

@@ -1,4 +1,5 @@
 import type { ThemePageContent } from "@/components/layout/ThemePage";
+import { cultureMedia } from "@/data/culture-media";
 
 export const themes = {
   kahve: {
@@ -11,9 +12,9 @@ export const themes = {
       "Bizim için kahve bir mola değil; sohbeti başlatan, fikirleri bir araya getiren ve atölyenin ritmini kuran günlük bir ritüel.",
     accent: "#d7ff38",
     surface: "#f1eee7",
-    heroImage: "/campaign/campaign-wide.jpg",
-    heroPosition: "62% center",
-    detailImage: "/products/binks/gomlek-fume-is.jpeg",
+    heroImage: cultureMedia.kahve.hero,
+    heroPosition: "center 46%",
+    detailImage: cultureMedia.kahve.espresso,
     detailPosition: "center",
     quote: "İyi kahve aceleye gelmez. İyi sohbet de öyle.",
     sections: [
@@ -44,10 +45,10 @@ export const themes = {
       "Her dövmeyi hazır bir görsel değil, birlikte geliştirilen kişisel bir iş olarak görüyoruz. Fikirden çizgiye, çizgiden tene uzanan süreçte zanaat hep merkezde.",
     accent: "#ff4b36",
     surface: "#eeeae5",
-    heroImage: "/products/binks/bandana-dovme-makinesi.jpeg",
-    heroPosition: "center 58%",
-    detailImage: "/campaign/campaign-portrait.jpg",
-    detailPosition: "center 18%",
+    heroImage: cultureMedia.dovme.session,
+    heroPosition: "center",
+    detailImage: cultureMedia.dovme.artwork,
+    detailPosition: "center",
     quote: "İyi bir çizgi yalnızca görünmez; sahibine ait bir şey söyler.",
     sections: [
       {
@@ -77,10 +78,10 @@ export const themes = {
       "Motosiklet bizim için bir ulaşım aracı değil; özgürlük, mekanik merak ve ortak bir dil. Garajdan sokağa uzanan kültürü birlikte yaşatıyoruz.",
     accent: "#63d4ff",
     surface: "#e9ecec",
-    heroImage: "/campaign/campaign-portrait.png",
-    heroPosition: "center 25%",
-    detailImage: "/products/binks/sapka-motor-nakis.jpeg",
-    detailPosition: "center",
+    heroImage: cultureMedia.motor.lineup,
+    heroPosition: "center 62%",
+    detailImage: cultureMedia.motor.lake,
+    detailPosition: "center 62%",
     quote: "Bazı yollar haritada değil, kontağı çevirdiğin anda başlar.",
     sections: [
       {

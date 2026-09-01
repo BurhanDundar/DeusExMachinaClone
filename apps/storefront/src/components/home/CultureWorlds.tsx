@@ -1,28 +1,29 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import { cultureMedia } from "@/data/culture-media";
 
 const worlds = [
   {
     title: "Kahve",
     subtitle: "Günlük ritüel",
     href: "/kahve",
-    image: "/products/binks/atolye-seti.jpeg",
-    position: "center 70%",
+    image: cultureMedia.kahve.pourOver,
+    position: "center",
   },
   {
     title: "Dövme",
     subtitle: "Kalıcı ifade",
     href: "/dovme",
-    image: "/products/binks/bandana-dovme-makinesi.jpeg",
+    image: cultureMedia.dovme.session,
     position: "center",
   },
   {
     title: "Motor",
     subtitle: "Yolda olma hâli",
     href: "/motor",
-    image: "/campaign/campaign-portrait.png",
-    position: "center 22%",
+    image: cultureMedia.motor.road,
+    position: "center 58%",
   },
 ] as const;
 

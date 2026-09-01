@@ -8,6 +8,7 @@ import { ProductSection } from "@/components/commerce/ProductSection";
 import { EditorialGrid } from "@/components/home/EditorialGrid";
 import { Footer } from "@/components/layout/Footer";
 import { getProducts } from "@/data/products";
+import { cultureMedia } from "@/data/culture-media";
 
 export default async function Home() {
   // Render the catalog when a request arrives so deployments do not depend on
@@ -21,9 +22,9 @@ export default async function Home() {
   return (
     <main>
       <Campaign
-        image="/campaign/campaign-portrait.jpg"
-        kicker="Sonbahar / Kış 26"
+        image={cultureMedia.motor.hero}
         title="Uzun yollar için tasarlandı."
+        position="center 64%"
       />
       <ProductSection
         title="Yeni Gelenler"
@@ -33,17 +34,18 @@ export default async function Home() {
       <HomeShopShowcase />
       <CultureWorlds />
       <Campaign
-        image="/campaign/campaign-wide.jpg"
+        image={cultureMedia.motor.lineup}
         kicker="Hareket çalışmaları / 01"
         title="Şehir sınırları yalnızca bir öneridir."
         portrait
+        position="center 66%"
       />
       <ProductSection title="Atölye Giyimi" products={clothing} href="/collections/clothing" />
       <section className="shell">
         <div className="grid gap-2 md:grid-cols-2">
-          <CampaignTile image="/campaign/campaign-portrait.jpg" title="Giyim" slug="clothing" />
+          <CampaignTile image={cultureMedia.kahve.barista} title="Giyim" slug="clothing" />
           <CampaignTile
-            image="/campaign/campaign-wide.jpg"
+            image={cultureMedia.dovme.artwork}
             title="Aksesuarlar"
             slug="accessories"
           />

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { useRef, type PointerEvent as ReactPointerEvent } from "react";
+import { cultureMedia } from "@/data/culture-media";
 
 const stories = [
   {
@@ -81,12 +82,8 @@ export function HomeShopShowcase() {
       <section className="shell" aria-labelledby="shop-stories-title">
         <header className="mb-6 flex items-end justify-between gap-5 md:mb-8">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[.2em] text-black/50">
-              Binks seçkisi
-            </p>
-            <h2 id="shop-stories-title" className="display mt-2 text-3xl md:text-5xl">
-              Atölyeden çıkanlar
-            </h2>
+            {/* Kaldırıp hizalama yapılabilir */}
+            <h2 id="shop-stories-title" className="display text-3xl md:text-5xl"></h2>
           </div>
           <div className="flex items-center">
             <Link
@@ -145,18 +142,15 @@ export function HomeShopShowcase() {
           className="focus-ring group relative block min-h-[520px] overflow-hidden bg-black text-white md:min-h-[680px]"
         >
           <Image
-            src="/campaign/campaign-wide.png"
+            src={cultureMedia.motor.portrait}
             alt="Binks Machina yeni sezon"
             fill
-            className="object-cover object-[68%_center] grayscale transition duration-1000 group-hover:scale-[1.015] group-hover:grayscale-0"
+            className="object-cover object-center grayscale transition duration-1000 group-hover:scale-[1.015] group-hover:grayscale-0"
             sizes="100vw"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-black/10" />
           <div className="absolute inset-x-0 bottom-0 flex flex-col items-center p-7 text-center md:p-14">
-            <p className="text-xs font-bold uppercase tracking-[.24em] text-white/70">
-              Sonbahar / Kış 26
-            </p>
-            <h2 className="display mt-3 text-5xl md:text-7xl">Yeni sezon yolda.</h2>
+            <h2 className="display mt-3 text-5xl md:text-7xl">Rüzgarı hisset.</h2>
             <span className="mt-6 flex items-center gap-2 border-b border-white pb-1 text-sm font-bold">
               Ön gösterimi keşfet <ArrowRight size={18} />
             </span>

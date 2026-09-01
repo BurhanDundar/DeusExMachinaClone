@@ -5,6 +5,7 @@ import { CartDrawer } from "@/components/commerce/CartDrawer";
 import { SearchDrawer } from "@/components/navigation/SearchDrawer";
 import { AuthProvider } from "@/auth/AuthProvider";
 import { storeInfo } from "@/lib/store-info";
+import { cultureMedia } from "@/data/culture-media";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -23,13 +24,13 @@ export const metadata: Metadata = {
     siteName: storeInfo.brandName,
     title: storeInfo.brandName,
     description: "Hareket hâlindeki yaşam için özgün ürünler.",
-    images: ["/campaign/campaign-wide.jpg"],
+    images: [cultureMedia.motor.hero],
   },
   twitter: {
     card: "summary_large_image",
     title: storeInfo.brandName,
     description: "Hareket hâlindeki yaşam için özgün ürünler.",
-    images: ["/campaign/campaign-wide.jpg"],
+    images: [cultureMedia.motor.hero],
   },
   icons: { icon: "/logo/binks-machina-logo.png" },
 };
