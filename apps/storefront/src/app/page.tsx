@@ -23,8 +23,9 @@ export default async function Home() {
     <main>
       <Campaign
         image={cultureMedia.motor.hero}
-        title="Uzun yollar için tasarlandı."
-        position="center 64%"
+        title="Motor / Kafein / Mürekkep"
+        position="center 52%"
+        typing
       />
       <ProductSection
         title="Yeni Gelenler"
