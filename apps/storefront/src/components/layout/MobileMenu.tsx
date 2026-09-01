@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, UserRound, X } from "lucide-react";
@@ -17,13 +18,26 @@ export function MobileMenu({ open, close }: { open: boolean; close: () => void }
           className="fixed inset-y-0 left-0 z-[60] flex w-[calc(100%-18px)] max-w-[360px] flex-col bg-paper px-6 py-5 shadow-2xl lg:hidden"
           aria-label="Menü"
         >
-          <button
-            onClick={close}
-            className="focus-ring ml-auto grid size-9 place-items-center border border-black/15"
-            aria-label="Menüyü kapat"
-          >
-            <X size={18} />
-          </button>
+          <div className="flex h-12 items-start justify-between">
+            <div className="size-12" aria-hidden="true">
+              <Image
+                src="/logo/seytan.png"
+                alt=""
+                width={48}
+                height={48}
+                className="size-12 object-contain"
+                style={{ transform: "scaleX(-1)" }}
+                sizes="48px"
+              />
+            </div>
+            <button
+              onClick={close}
+              className="focus-ring grid size-9 place-items-center border border-black/15"
+              aria-label="Menüyü kapat"
+            >
+              <X size={18} />
+            </button>
+          </div>
           <nav className="mt-12" aria-label="Mobil menü">
             <ul className="space-y-1">
               {catalogLinks.map((category) => (
